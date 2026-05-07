@@ -11,9 +11,10 @@ const headers = {
   'x-api-key': API_KEY,
 }
 
-export async function createLead(data: {
+export async function saveLead(data: {
   phone: string
   name?: string
+  email?: string
   interest?: string
   vehicle?: string
   budget?: string

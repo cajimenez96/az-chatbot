@@ -49,8 +49,7 @@ export default function LoginPage() {
       }
 
       setError(null)
-      // router.push('/dashboard')
-      alert('¡Login exitoso! Bienvenido al panel de Renault.')
+      router.push('/dashboard/leads')
     },
     onError: (err: any) => {
       setError(err.response?.data?.message || 'Error al intentar iniciar sesión')

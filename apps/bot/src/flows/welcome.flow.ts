@@ -4,16 +4,49 @@ import { autosUsadosFlow } from './autos-usados.flow'
 import { financiacionFlow } from './financiacion.flow'
 import { serviciosFlow } from './servicios.flow'
 import { derivacionFlow } from './derivacion.flow'
-import { updateConversationStatus } from '../services/api.service'
+import { updateConversationStatus, saveLead } from '../services/api.service'
 
 export const welcomeFlow = addKeyword(EVENTS.WELCOME)
   .addAction(async (ctx) => {
     await updateConversationStatus(ctx.from, 'bot_active')
   })
   .addAnswer(
+    '👋 ¡Hola! Bienvenido a **Renault Argentina**. Para brindarte una mejor atención, ¿me podrías decir tu **nombre completo**?',
+    { capture: true },
+    async (ctx, { state }) => {
+      await state.update({ name: ctx.body.trim() })
+    }
+  )
+  .addAnswer(
+    '¡Mucho gusto! Por último, ¿cuál es tu **correo electrónico**?',
+    { capture: true },
+    async (ctx, { state, flowDynamic, fallBack }) => {
+      const email = ctx.body.trim()
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+      
+      if (!emailRegex.test(email)) {
+        return fallBack('❌ Ese correo no parece ser válido. ¿Podrías escribirlo de nuevo?')
+      }
+
+      const name = state.get('name')
+      
+      // Guardamos el lead en la API
+      try {
+        await saveLead({
+          phone: ctx.from,
+          name: name,
+          email: email,
+          status: 'new'
+        })
+      } catch (error) {
+        console.error('Error saving lead:', error)
+      }
+      
+      await flowDynamic(`¡Perfecto **${name}**! Ya tengo tus datos registrados.`)
+    }
+  )
+  .addAnswer(
     [
-      '¡Hola! 👋 Bienvenido al concesionario *Renault*.',
-      '',
       '¿En qué puedo ayudarte hoy?',
       '',
       '1️⃣ Autos nuevos',
