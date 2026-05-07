@@ -1,0 +1,46 @@
+services:
+  # Comentamos Postgres porque ya lo tenés instalado y creado manual en tu Mac
+  # postgres:
+  #   image: postgres:16-alpine
+  #   container_name: az-chatbot-db
+  #   restart: unless-stopped
+  #   environment:
+  #     POSTGRES_USER: chatbot
+  #     POSTGRES_PASSWORD: chatbot_dev
+  #     POSTGRES_DB: chatbot_db
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: az-chatbot-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  evolution-api:
+    image: atendai/evolution-api:v2.2.3
+    container_name: az-chatbot-evolution
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      SERVER_URL: http://localhost:8080
+      AUTHENTICATION_API_KEY: evolution_dev_key
+      DATABASE_ENABLED: true
+      DATABASE_PROVIDER: postgresql
+      # OJO: Acá usamos host.docker.internal para que el contenedor vea el Postgres de tu Mac
+      DATABASE_CONNECTION_URI: postgresql://chatbot:chatbot_dev@host.docker.internal:5432/chatbot_db
+      CACHE_REDIS_ENABLED: true
+      CACHE_REDIS_URI: redis://redis:6379
+    # depends_on:
+    #   - postgres
+    #   - redis
+
+volumes:
+  # postgres_data:
+  redis_data:
