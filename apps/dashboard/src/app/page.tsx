@@ -1,17 +1,65 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { useMutation } from '@tanstack/react-query'
+import { api } from '@/lib/axios'
+import { useAuthStore } from '@/store/useAuthStore'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import type { LoginDTO, AuthResponse } from '@az-chatbot/types'
 
 export default function LoginPage() {
-  const [loading, setLoading] = useState(false)
+  const router = useRouter()
+  const { setAuth, rememberedEmail, setRememberedEmail, isAuthenticated } = useAuthStore()
+  
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // Cargar email recordado al montar el componente
+  useEffect(() => {
+    if (rememberedEmail) {
+      setEmail(rememberedEmail)
+      setRememberMe(true)
+    }
+  }, [rememberedEmail])
+
+  // Si ya está autenticado, lo mandamos al dashboard (placeholder por ahora)
+  useEffect(() => {
+    if (isAuthenticated()) {
+      // router.push('/dashboard') 
+      console.log('Usuario ya autenticado')
+    }
+  }, [isAuthenticated, router])
+
+  const loginMutation = useMutation({
+    mutationFn: async (data: LoginDTO) => {
+      const res = await api.post<AuthResponse>('/auth/login', data)
+      return res.data
+    },
+    onSuccess: (data) => {
+      setAuth(data.accessToken, email)
+      
+      if (rememberMe) {
+        setRememberedEmail(email)
+      } else {
+        setRememberedEmail(null)
+      }
+
+      setError(null)
+      // router.push('/dashboard')
+      alert('¡Login exitoso! Bienvenido al panel de Renault.')
+    },
+    onError: (err: any) => {
+      setError(err.response?.data?.message || 'Error al intentar iniciar sesión')
+    }
+  })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
-    // Auth logic will go here
-    setTimeout(() => setLoading(false), 1500)
+    loginMutation.mutate({ email, password })
   }
 
   return (
@@ -35,7 +83,6 @@ export default function LoginPage() {
           position: 'relative',
         }}
       >
-        {/* Renault Diamond */}
         <div
           style={{
             width: 40,
@@ -55,13 +102,58 @@ export default function LoginPage() {
           </p>
         </header>
 
+        {error && (
+          <div style={{ 
+            backgroundColor: '#fff1f1', 
+            color: 'var(--color-error)', 
+            padding: 'var(--space-md)', 
+            marginBottom: 'var(--space-lg)',
+            borderLeft: '4px solid var(--color-error)',
+            font: 'var(--text-body-sm)'
+          }}>
+            {error}
+          </div>
+        )}
+
         <form onSubmit={handleSubmit}>
-          <Input label="Email" type="email" placeholder="admin@renault.com" required />
-          <Input label="Contraseña" type="password" placeholder="••••••••" required />
+          <Input 
+            label="Email" 
+            type="email" 
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="admin@renault.com" 
+            required 
+          />
+          <Input 
+            label="Contraseña" 
+            type="password" 
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••" 
+            required 
+          />
+
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 'var(--space-xs)',
+            marginBottom: 'var(--space-xl)'
+          }}>
+            <input 
+              type="checkbox" 
+              id="remember" 
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              style={{ accentColor: 'var(--color-ink)', width: '16px', height: '16px' }}
+            />
+            <label htmlFor="remember" style={{ font: 'var(--text-caption)', color: 'var(--color-body)', cursor: 'pointer' }}>
+              Recordar mis datos
+            </label>
+          </div>
 
           <div style={{ marginTop: 'var(--space-xl)' }}>
-            <Button disabled={loading}>
-              {loading ? 'CARGANDO...' : 'ENTRAR AL PANEL'}
+            <Button disabled={loginMutation.isPending}>
+              {loginMutation.isPending ? 'CARGANDO...' : 'ENTRAR AL PANEL'}
             </Button>
           </div>
         </form>
