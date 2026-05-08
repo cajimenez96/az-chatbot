@@ -1,12 +1,14 @@
 {
-  "extends": "../../tsconfig.base.json",
   "compilerOptions": {
+    "target": "ESNext",
     "module": "ESNext",
     "moduleResolution": "bundler",
+    "strict": true,
+    "skipLibCheck": true,
     "outDir": "./dist",
-    "rootDir": "./src",
+    "baseUrl": ".",
     "paths": {
-      "@az-chatbot/types": ["../../packages/types/src/index.ts"]
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src/**/*"]

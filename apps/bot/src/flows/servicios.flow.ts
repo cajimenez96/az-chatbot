@@ -1,5 +1,5 @@
 import { addKeyword, EVENTS } from '@builderbot/bot'
-import { createLead } from '../services/api.service'
+import { saveLead } from '../services/api.service'
 
 export const serviciosFlow = addKeyword(EVENTS.ACTION)
   .addAnswer(

@@ -7,6 +7,7 @@ import { ConversationsModule } from './conversations/conversations.module'
 import { MetricsModule } from './metrics/metrics.module'
 import { AuthModule } from './auth/auth.module'
 import { SeedModule } from './database/seed.module'
+import { BotModule } from './bot/bot.module'
 
 @Module({
   imports: [
@@ -32,6 +33,7 @@ import { SeedModule } from './database/seed.module'
     ConversationsModule,
     MetricsModule,
     SeedModule,
+    BotModule,
   ],
 })
 export class AppModule {}

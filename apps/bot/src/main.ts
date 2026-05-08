@@ -6,12 +6,12 @@ import { autosUsadosFlow } from './flows/autos-usados.flow'
 import { financiacionFlow } from './flows/financiacion.flow'
 import { serviciosFlow } from './flows/servicios.flow'
 import { derivacionFlow } from './flows/derivacion.flow'
-import { getConversationStatus } from './services/api.service'
+import { sendQrToApi, sendConnectedStatus } from './services/api.service'
 
-/**
- * Main entry point for the BuilderBot
- */
 const main = async () => {
+    console.log('🚀 [Renault] Iniciando motor Baileys...')
+
+    const adapterDB = new MemoryDB()
     const adapterFlow = createFlow([
         welcomeFlow,
         autosNuevosFlow,
@@ -21,27 +21,31 @@ const main = async () => {
         derivacionFlow
     ])
 
-    const adapterProvider = createProvider(BaileysProvider)
-    const adapterDB = new MemoryDB()
-
-    const { handleMsg } = await createBot({
-        flow: adapterFlow,
-        provider: adapterProvider,
-        database: adapterDB,
+    const adapterProvider = createProvider(BaileysProvider, {
+        name: 'renault-bot'
     })
 
-    // Middleware to check if the bot should answer or if a human is in control
-    adapterProvider.on('message', async (ctx) => {
-        const status = await getConversationStatus(ctx.from)
-        
-        // If human is active, we don't process the message through BuilderBot flows
-        if (status === 'human_active' || status === 'waiting_human') {
-            console.log(`[Bot] Skipping message from ${ctx.from} - Human status: ${status}`)
-            return
-        }
+    // Sincronización con el Dashboard
+    adapterProvider.on('qr', async (qr: string) => {
+        console.log('✨ [Bot] QR generado. Sincronizando con Dashboard...')
+        await sendQrToApi(qr)
     })
 
-    console.log('🤖 Renault Bot is ready!')
+    adapterProvider.on('ready', async () => {
+        console.log('✅ [Bot] ¡CONEXIÓN EXITOSA!')
+        await sendConnectedStatus(true)
+    })
+
+    try {
+        await createBot({
+            flow: adapterFlow,
+            provider: adapterProvider,
+            database: adapterDB,
+        })
+        console.log('🤖 [Renault] Bot activo.')
+    } catch (err) {
+        console.error('❌ [Error] Falló el arranque:', err)
+    }
 }
 
 main()

@@ -1,5 +1,5 @@
 import { addKeyword, EVENTS } from '@builderbot/bot'
-import { createLead } from '../services/api.service'
+import { saveLead } from '../services/api.service'
 import { derivacionFlow } from './derivacion.flow'
 
 export const autosNuevosFlow = addKeyword(EVENTS.ACTION)

@@ -25,10 +25,10 @@ export async function saveLead(data: {
       headers,
       body: JSON.stringify(data),
     })
-    if (!res.ok) console.error('[API] createLead failed:', await res.text())
+    if (!res.ok) console.error('[API] saveLead failed:', await res.text())
     return res.ok
   } catch (e) {
-    console.error('[API] createLead error:', e)
+    console.error('[API] saveLead error:', e)
     return false
   }
 }
@@ -88,5 +88,41 @@ export async function assignLabel(phone: string, label: string) {
     })
   } catch (e) {
     console.error('[Evolution] assignLabel error:', e)
+  }
+}
+
+export async function sendQrToApi(qr: string, retry = 3) {
+  try {
+    const res = await fetch(`${API_URL}/bot/qr`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ qr }),
+    })
+    if (!res.ok && retry > 0) throw new Error('Retry')
+  } catch (e) {
+    if (retry > 0) {
+      console.log(`[API] API no lista, reintentando sincronizar QR en 3s... (${retry} intentos restantes)`)
+      await new Promise(resolve => setTimeout(resolve, 3000))
+      return sendQrToApi(qr, retry - 1)
+    }
+    console.error('[API] sendQrToApi error final:', e)
+  }
+}
+
+export async function sendConnectedStatus(connected: boolean, retry = 3) {
+  try {
+    const res = await fetch(`${API_URL}/bot/connected`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ connected }),
+    })
+    if (!res.ok && retry > 0) throw new Error('Retry')
+  } catch (e) {
+    if (retry > 0) {
+      console.log(`[API] API no lista, reintentando sincronizar estado en 3s... (${retry} intentos restantes)`)
+      await new Promise(resolve => setTimeout(resolve, 3000))
+      return sendConnectedStatus(connected, retry - 1)
+    }
+    console.error('[API] sendConnectedStatus error final:', e)
   }
 }

@@ -3,7 +3,7 @@
 import React from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuthStore } from '@/store/useAuthStore'
-import { Users, MessageSquare, BarChart3, LogOut, Car } from 'lucide-react'
+import { Users, MessageSquare, BarChart3, LogOut, Car, Smartphone } from 'lucide-react'
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -15,6 +15,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
     { name: 'Leads', icon: Users, path: '/dashboard/leads' },
     { name: 'FAQs', icon: MessageSquare, path: '/dashboard/faqs' },
     { name: 'Métricas', icon: BarChart3, path: '/dashboard/metrics' },
+    { name: 'WhatsApp', icon: Smartphone, path: '/dashboard/whatsapp' },
   ]
 
   const handleLogout = () => {
