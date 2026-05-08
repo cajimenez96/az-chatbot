@@ -1,51 +1,155 @@
-import { createBot, createProvider, createFlow, MemoryDB } from '@builderbot/bot'
-import { BaileysProvider } from '@builderbot/provider-baileys'
-import { welcomeFlow } from './flows/welcome.flow'
-import { autosNuevosFlow } from './flows/autos-nuevos.flow'
-import { autosUsadosFlow } from './flows/autos-usados.flow'
-import { financiacionFlow } from './flows/financiacion.flow'
-import { serviciosFlow } from './flows/servicios.flow'
-import { derivacionFlow } from './flows/derivacion.flow'
-import { sendQrToApi, sendConnectedStatus } from './services/api.service'
+import { createBot, createFlow, MemoryDB } from "@builderbot/bot";
+import { WPPConnectProvider } from "@builderbot/provider-wppconnect";
+import { welcomeFlow } from "./flows/welcome.flow";
+import { autosNuevosFlow } from "./flows/autos-nuevos.flow";
+import { autosUsadosFlow } from "./flows/autos-usados.flow";
+import { financiacionFlow } from "./flows/financiacion.flow";
+import { serviciosFlow } from "./flows/servicios.flow";
+import { derivacionFlow } from "./flows/derivacion.flow";
+import { sendQrToApi, sendConnectedStatus } from "./services/api.service";
+import * as wppconnect from "@wppconnect-team/wppconnect";
+
+process.env.DEBUG = "wppconnect:*";
 
 const main = async () => {
-    console.log('🚀 [Renault] Iniciando motor Baileys...')
+  console.log("🚀 [Renault] Iniciando motor (MODO FORZADO)...");
 
-    const adapterDB = new MemoryDB()
-    const adapterFlow = createFlow([
-        welcomeFlow,
-        autosNuevosFlow,
-        autosUsadosFlow,
-        financiacionFlow,
-        serviciosFlow,
-        derivacionFlow
-    ])
+  // Verificamos conexión con la API antes de seguir
+  try {
+    console.log("🔗 [Bot] Verificando conexión con la API...");
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    fetch("http://localhost:3001/api/bot/status", { signal: controller.signal })
+      .then((res) => {
+        if (res) console.log("✅ [Bot] API detectada y respondiendo.");
+      })
+      .catch(() => {
+        console.warn(
+          "⚠️ [Bot] No se pudo contactar con la API en http://localhost:3001/api. ¿Está encendida?",
+        );
+      })
+      .finally(() => clearTimeout(timeoutId));
+  } catch (e: unknown) {
+    const error = e as Error;
+    console.error(`Fallo de red al crear instancia: ${error.message}`);
+  }
 
-    const adapterProvider = createProvider(BaileysProvider, {
-        name: 'renault-bot'
-    })
+  const adapterDB = new MemoryDB();
+  const adapterFlow = createFlow([
+    welcomeFlow,
+    autosNuevosFlow,
+    autosUsadosFlow,
+    financiacionFlow,
+    serviciosFlow,
+    derivacionFlow,
+  ]);
 
-    // Sincronización con el Dashboard
-    adapterProvider.on('qr', async (qr: string) => {
-        console.log('✨ [Bot] QR generado. Sincronizando con Dashboard...')
-        await sendQrToApi(qr)
-    })
+  // Inicializamos el proveedor
+  const adapterProvider = new WPPConnectProvider({
+    name: "renault-bot",
+    headless: true,
+    useChrome: true,
+    logQR: true,
+    browserArgs: ["--no-sandbox", "--disable-setuid-sandbox"],
+  } as any);
 
-    adapterProvider.on('ready', async () => {
-        console.log('✅ [Bot] ¡CONEXIÓN EXITOSA!')
-        await sendConnectedStatus(true)
-    })
+  // Listeners de emergencia
+  adapterProvider.on("qr", (qr: string) => {
+    console.log("✨ [Bot] QR DETECTADO:", qr);
+    sendQrToApi(qr);
+  });
 
-    try {
-        await createBot({
-            flow: adapterFlow,
-            provider: adapterProvider,
-            database: adapterDB,
-        })
-        console.log('🤖 [Renault] Bot activo.')
-    } catch (err) {
-        console.error('❌ [Error] Falló el arranque:', err)
-    }
-}
+  try {
+    console.log(
+      "⚙️ [Bot] Probando arranque de motor crudo (como el test-wpp.ts)...",
+    );
 
-main()
+    const client = await wppconnect.create({
+      session: "renault-bot",
+      deviceName: "Bot Renault Gestión",
+      autoClose: 0,
+      headless: true,
+      useChrome: true,
+      updatesLog: true,
+      logQR: true,
+      browserArgs: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--no-first-run",
+        "--no-zygote",
+        "--single-process",
+        "--disable-gpu",
+      ],
+      catchQR: (base64Qr, asciiQR, attempt, urlCode) => {
+        console.log(`🔥 [Bot] ¡QR CAPTURADO! Intento: ${attempt}`);
+        if (urlCode) {
+          sendQrToApi(urlCode);
+        }
+      },
+    });
+
+    console.log(
+      "✅ [Bot] Motor crudo arrancó con éxito. Sincronizando con BuilderBot...",
+    );
+
+    // Inyección reforzada: Seteamos en múltiples propiedades por si acaso
+    const provAny = adapterProvider as any;
+    provAny.client = client;
+    provAny.vendor = client;
+    provAny.instance = client;
+
+    await createBot({
+      flow: adapterFlow,
+      provider: adapterProvider,
+      database: adapterDB,
+    });
+
+    // Volvemos a setear después de createBot por si la librería lo limpió
+    provAny.vendor = client;
+    provAny.client = client;
+
+    // NOTIFICAR CONEXIÓN EXITOSA
+    sendConnectedStatus(true);
+    console.log("✅ [Bot] Estado de conexión enviado a la API.");
+
+    console.log("🚀 [Bot] Arquitectura lista y escuchando mensajes...");
+
+    // Listener para cambios de estado con FILTRO
+    let lastKnownStatus: boolean | null = null;
+
+    client.onStateChange((state: any) => {
+      const s = String(state).toUpperCase();
+      const isConnected = s.includes("CONNECTED");
+      if (isConnected !== lastKnownStatus) {
+        lastKnownStatus = isConnected;
+        sendConnectedStatus(isConnected);
+      }
+    });
+
+    // PUENTE MANUAL DE MENSAJES (Para que BuilderBot sepa que llegó algo)
+    client.onMessage((message: any) => {
+      if (message.from !== "status@broadcast") {
+        console.log(
+          `📩 [Bot] Mensaje recibido de ${message.from}: ${message.body}`,
+        );
+        adapterProvider.emit("message", message);
+      }
+    });
+  } catch (err: any) {
+    console.error("❌ [ERROR DE MOTOR] Falló el arranque de WPPConnect:", err);
+    console.error("Stack Trace:", err.stack);
+  }
+};
+
+// Captura de errores globales
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("❌ [Unhandled Rejection] Razón:", reason);
+});
+
+process.on("uncaughtException", (err) => {
+  console.error("❌ [Uncaught Exception] Error:", err);
+});
+
+main();

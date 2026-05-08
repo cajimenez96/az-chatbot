@@ -10,10 +10,10 @@ import type { FAQCategory } from '@az-chatbot/types'
 @Entity('faqs')
 export class FAQ {
   @PrimaryGeneratedColumn('uuid')
-  id: string
+  id!: string
 
   @Column()
-  question: string
+  question!: string
 
   @Column('text')
   answer: string

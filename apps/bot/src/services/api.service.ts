@@ -93,11 +93,15 @@ export async function assignLabel(phone: string, label: string) {
 
 export async function sendQrToApi(qr: string, retry = 3) {
   try {
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 5000)
+
     const res = await fetch(`${API_URL}/bot/qr`, {
       method: 'POST',
       headers,
       body: JSON.stringify({ qr }),
-    })
+      signal: controller.signal
+    }).finally(() => clearTimeout(timeoutId))
     if (!res.ok && retry > 0) throw new Error('Retry')
   } catch (e) {
     if (retry > 0) {

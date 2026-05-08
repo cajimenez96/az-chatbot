@@ -10,10 +10,10 @@ import type { LeadStatus, LeadInterest } from '@az-chatbot/types'
 @Entity('leads')
 export class Lead {
   @PrimaryGeneratedColumn('uuid')
-  id: string
+  id!: string
 
   @Column({ unique: false })
-  phone: string
+  phone!: string
 
   @Column({ nullable: true })
   name?: string
@@ -28,7 +28,7 @@ export class Lead {
   budget?: string
 
   @Column({ type: 'varchar', default: 'new' })
-  status: LeadStatus
+  status!: LeadStatus
 
   @Column({ nullable: true })
   conversationId?: string

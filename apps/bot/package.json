@@ -4,13 +4,16 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "bun run src/main.ts",
+    "dev": "DEBUG=wppconnect:* tsx src/main.ts",
     "start": "bun run src/main.ts"
   },
   "dependencies": {
     "@az-chatbot/types": "workspace:*",
     "@builderbot/bot": "latest",
-    "@builderbot/provider-baileys": "latest",
-    "qrcode-terminal": "latest"
+    "@builderbot/provider-wppconnect": "^1.4.1",
+    "@wppconnect-team/wppconnect": "latest"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0"
   }
 }

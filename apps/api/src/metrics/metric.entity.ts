@@ -8,10 +8,10 @@ import {
 @Entity('daily_metrics')
 export class DailyMetric {
   @PrimaryGeneratedColumn('uuid')
-  id: string
+  id!: string
 
   @Column({ unique: true })
-  date: string // YYYY-MM-DD
+  date!: string // YYYY-MM-DD
 
   @Column({ default: 0 })
   conversationsTotal: number

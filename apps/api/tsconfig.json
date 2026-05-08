@@ -3,15 +3,23 @@
   "compilerOptions": {
     "module": "CommonJS",
     "moduleResolution": "node",
-    "target": "ES2022",
+    "target": "ES2021",
     "outDir": "./dist",
     "rootDir": "./src",
+    "useDefineForClassFields": false,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "paths": {
-      "@az-chatbot/types": ["../../packages/types/src/index.ts"]
+      "@az-chatbot/types": [
+        "../../packages/types/src/index.ts"
+      ]
     }
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

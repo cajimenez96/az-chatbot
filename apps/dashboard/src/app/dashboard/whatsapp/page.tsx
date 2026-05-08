@@ -11,7 +11,7 @@ export default function WhatsAppPage() {
   const token = typeof window !== 'undefined' ? localStorage.getItem('renault-auth-storage') : null
   const parsedToken = token ? JSON.parse(token)?.state?.token : null
 
-  const { data, isLoading, isError, refetch } = useQuery({
+  const { data, isLoading, isError, refetch, dataUpdatedAt } = useQuery({
     queryKey: ['bot-status'],
     queryFn: async () => {
       const res = await fetch(`${API_URL}/bot/status`, {
@@ -22,8 +22,13 @@ export default function WhatsAppPage() {
       if (!res.ok) throw new Error('Error al obtener estado del bot')
       return res.json()
     },
-    refetchInterval: 5000, // Polling cada 5 segundos
+    // Polling inteligente: 5s si espera QR, 30s si ya está conectado
+    refetchInterval: (query) => {
+      return query.state.data?.isConnected ? 30000 : 5000
+    },
   })
+
+  const lastUpdate = dataUpdatedAt ? new Date(dataUpdatedAt).toLocaleTimeString() : '--:--'
 
   return (
     <div style={{ maxWidth: '800px' }}>
@@ -113,20 +118,24 @@ export default function WhatsAppPage() {
         )}
       </div>
 
-      <button 
-        onClick={() => refetch()}
-        style={{
-          marginTop: 'var(--space-xl)',
-          backgroundColor: 'transparent',
-          border: '1px solid var(--color-primary)',
-          color: 'var(--color-primary)',
-          padding: '10px 20px',
-          cursor: 'pointer',
-          font: 'var(--text-button-sm)'
-        }}
-      >
-        FORZAR ACTUALIZACIÓN
-      </button>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', marginTop: 'var(--space-xl)' }}>
+        <button 
+          onClick={() => refetch()}
+          style={{
+            backgroundColor: 'transparent',
+            border: '1px solid var(--color-primary)',
+            color: 'var(--color-primary)',
+            padding: '10px 20px',
+            cursor: 'pointer',
+            font: 'var(--text-button-sm)'
+          }}
+        >
+          FORZAR ACTUALIZACIÓN
+        </button>
+        <span style={{ color: 'var(--color-ash)', fontSize: '12px' }}>
+          Última sincronización: {lastUpdate}
+        </span>
+      </div>
     </div>
   )
 }
