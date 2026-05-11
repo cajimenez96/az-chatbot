@@ -1,27 +1,46 @@
-import { addKeyword, EVENTS } from '@builderbot/bot'
-import { updateConversationStatus, registerEvent, assignLabel } from '../services/api.service'
+import { addKeyword } from "@builderbot/bot";
 
-export const derivacionFlow = addKeyword(EVENTS.ACTION)
-  .addAnswer(
-    'Entiendo. Voy a derivar tu consulta a uno de nuestros asesores para que pueda ayudarte personalmente. ⏳',
-    null,
-    async (ctx) => {
-      // 1. Update status in NestJS API
-      await updateConversationStatus(ctx.from, 'waiting_human')
-      
-      // 2. Register metric event
-      await registerEvent('derivation_requested')
-      
-      // 3. Assign label in Evolution API (🔴 Derivado)
-      // Note: You'll need to create the label first in Evolution API UI or via API
-      // For this example we assume labelId "derivado" exists
-      await assignLabel(ctx.from, 'derivado')
+export const derivacionFlow = addKeyword([
+  "asesor",
+  "humano",
+  "persona",
+  "ayuda",
+]).addAnswer(
+  "Entendido. Un asesor humano revisará tu caso en breve. 👨‍💻",
+  null,
+  async (ctx, { provider }) => {
+    console.log(`🚀 [Bot] EJECUTANDO FLUJO DE DERIVACIÓN PARA: ${ctx.from}`);
+    const client = (provider as any).vendor || (provider as any).client;
+
+    if (!client) {
+      console.error(
+        "❌ [Bot] No se encontró el cliente de WhatsApp en el proveedor.",
+      );
+      return;
     }
-  )
-  .addAnswer(
-    [
-      'Ya di aviso al equipo. Un asesor humano te responderá por este mismo chat a la brevedad.',
-      '',
-      'El bot se desactivará temporalmente para que puedas hablar tranquilo. ¡Muchas gracias!',
-    ]
-  )
+
+    const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+    setTimeout(async () => {
+      try {
+        const client = (provider as any).vendor || (provider as any).client;
+        if (!client) return;
+
+        const chatId = ctx.from;
+        // 1. ETIQUETAR (Usando método nativo de WPPConnect)
+        // Nota: El labelId '13' debe existir en tu WhatsApp Business
+        try {
+          await client.addOrRemoveLabels(
+            [chatId],
+            [{ labelId: "13", type: "add" }],
+          );
+        } catch (e: any) {}
+
+        // 2. MARCAR NO LEÍDO (Usando método nativo de WPPConnect)
+        try {
+          await client.markUnseenMessage(chatId);
+        } catch (e: any) {}
+      } catch (e: any) {}
+    }, 1000);
+  },
+);
