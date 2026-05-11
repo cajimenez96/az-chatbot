@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "DEBUG=wppconnect:* tsx src/main.ts",
+    "dev": "bun run src/main.ts",
     "start": "bun run src/main.ts"
   },
   "dependencies": {

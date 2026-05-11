@@ -20,9 +20,7 @@ const main = async () => {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 5000);
     fetch("http://localhost:3001/api/bot/status", { signal: controller.signal })
-      .then((res) => {
-        if (res) console.log("✅ [Bot] API detectada y respondiendo.");
-      })
+      .then((res) => {})
       .catch(() => {
         console.warn(
           "⚠️ [Bot] No se pudo contactar con la API en http://localhost:3001/api. ¿Está encendida?",
@@ -55,15 +53,10 @@ const main = async () => {
 
   // Listeners de emergencia
   adapterProvider.on("qr", (qr: string) => {
-    console.log("✨ [Bot] QR DETECTADO:", qr);
     sendQrToApi(qr);
   });
 
   try {
-    console.log(
-      "⚙️ [Bot] Probando arranque de motor crudo (como el test-wpp.ts)...",
-    );
-
     const client = await wppconnect.create({
       session: "renault-bot",
       deviceName: "Bot Renault Gestión",
@@ -83,16 +76,11 @@ const main = async () => {
         "--disable-gpu",
       ],
       catchQR: (base64Qr, asciiQR, attempt, urlCode) => {
-        console.log(`🔥 [Bot] ¡QR CAPTURADO! Intento: ${attempt}`);
         if (urlCode) {
           sendQrToApi(urlCode);
         }
       },
     });
-
-    console.log(
-      "✅ [Bot] Motor crudo arrancó con éxito. Sincronizando con BuilderBot...",
-    );
 
     // Inyección reforzada: Seteamos en múltiples propiedades por si acaso
     const provAny = adapterProvider as any;
@@ -112,10 +100,6 @@ const main = async () => {
 
     // NOTIFICAR CONEXIÓN EXITOSA
     sendConnectedStatus(true);
-    console.log("✅ [Bot] Estado de conexión enviado a la API.");
-
-    console.log("🚀 [Bot] Arquitectura lista y escuchando mensajes...");
-
     // Listener para cambios de estado con FILTRO
     let lastKnownStatus: boolean | null = null;
 
@@ -131,9 +115,6 @@ const main = async () => {
     // PUENTE MANUAL DE MENSAJES (Para que BuilderBot sepa que llegó algo)
     client.onMessage((message: any) => {
       if (message.from !== "status@broadcast") {
-        console.log(
-          `📩 [Bot] Mensaje recibido de ${message.from}: ${message.body}`,
-        );
         adapterProvider.emit("message", message);
       }
     });
