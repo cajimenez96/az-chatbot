@@ -1,62 +1,39 @@
+'use client'
 import React, { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
+import { cn } from "@/lib/utils"
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   label?: string
 }
 
-export const Input = ({ label, type, style, ...props }: InputProps) => {
+export const Input = ({ label, type, className, ...props }: InputProps) => {
   const [showPassword, setShowPassword] = useState(false)
   const isPassword = type === 'password'
   const inputType = isPassword ? (showPassword ? 'text' : 'password') : type
 
   return (
-    <div style={{ width: '100%', marginBottom: 'var(--space-md)' }}>
+    <div className="w-full mb-4">
       {label && (
-        <label
-          style={{
-            display: 'block',
-            font: 'var(--text-overline)',
-            textTransform: 'uppercase',
-            color: 'var(--color-mute)',
-            marginBottom: 'var(--space-xxs)',
-          }}
-        >
+        <label className="block text-sm font-medium text-foreground mb-2">
           {label}
         </label>
       )}
-      <div style={{ position: 'relative' }}>
+      <div className="relative">
         <input
           {...props}
           type={inputType}
-          style={{
-            width: '100%',
-            padding: 'var(--space-md)',
-            paddingRight: isPassword ? 'var(--space-xxxl)' : 'var(--space-md)',
-            border: '1px solid var(--color-stone)',
-            borderRadius: 'var(--rounded-none)',
-            font: 'var(--text-body-md)',
-            color: 'var(--color-ink)',
-            backgroundColor: 'var(--color-canvas)',
-            outline: 'none',
-            ...style,
-          }}
-          onFocus={(e) => (e.currentTarget.style.borderColor = 'var(--color-ink)')}
-          onBlur={(e) => (e.currentTarget.style.borderColor = 'var(--color-stone)')}
+          className={cn(
+            "w-full px-4 py-2.5 bg-background border border-border rounded-full text-sm text-foreground outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground",
+            isPassword ? "pr-12" : "",
+            className
+          )}
         />
         {isPassword && (
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            style={{
-              position: 'absolute',
-              right: 'var(--space-md)',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              color: 'var(--color-ash)',
-              display: 'flex',
-              alignItems: 'center',
-            }}
+            className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors focus:outline-none"
           >
             {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
