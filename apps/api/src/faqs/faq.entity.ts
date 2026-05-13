@@ -12,27 +12,39 @@ export class FAQ {
   @PrimaryGeneratedColumn('uuid')
   id!: string
 
+  @Column({ default: 'message' })
+  type!: 'message' | 'question' | 'menu'
+
   @Column()
   question!: string
 
-  @Column('text')
-  answer: string
+  @Column('text', { nullable: true })
+  message!: string
 
   @Column({ type: 'varchar', default: 'general' })
-  category: FAQCategory
+  category!: string
 
   @Column('simple-array', { nullable: true })
-  keywords: string[]
+  keywords!: string[]
+
+  @Column('json', { nullable: true })
+  options?: any[]
+
+  @Column({ nullable: true })
+  saveAs?: string
+
+  @Column({ nullable: true })
+  nextBlockId?: string
 
   @Column({ default: true })
-  active: boolean
+  active!: boolean
 
   @Column({ default: 0 })
-  hits: number
+  hits!: number
 
   @CreateDateColumn()
-  createdAt: Date
+  createdAt!: Date
 
   @UpdateDateColumn()
-  updatedAt: Date
+  updatedAt!: Date
 }

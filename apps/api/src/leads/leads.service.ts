@@ -15,17 +15,28 @@ export class LeadsService {
   ) {}
 
   async create(dto: CreateLeadDto): Promise<Lead> {
-    const lead = this.repo.create(dto)
+    const { phone } = dto
+    if (!phone) throw new Error('Phone is required to create a lead')
+
+    let lead = await this.findByPhone(phone)
+
+    if (lead) {
+      Object.assign(lead, dto)
+    } else {
+      lead = this.repo.create(dto)
+    }
+
     const saved = await this.repo.save(lead)
     await this.metricsService.registerEvent({ event: 'lead_captured' })
     return saved
   }
 
-  async findAll(opts: { page: number; limit: number; status?: string }) {
-    const { page, limit, status } = opts
+  async findAll(opts: { page: number; limit: number; status?: string; phone?: string }) {
+    const { page, limit, status, phone } = opts
     const qb = this.repo.createQueryBuilder('lead')
 
     if (status) qb.andWhere('lead.status = :status', { status })
+    if (phone) qb.andWhere('lead.phone LIKE :phone', { phone: `%${phone}%` })
 
     const [data, total] = await qb
       .orderBy('lead.createdAt', 'DESC')
@@ -34,6 +45,10 @@ export class LeadsService {
       .getManyAndCount()
 
     return { data, total, page, limit }
+  }
+
+  async findByPhone(phone: string): Promise<Lead | null> {
+    return this.repo.findOne({ where: { phone } })
   }
 
   async findOne(id: string): Promise<Lead> {

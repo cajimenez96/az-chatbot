@@ -1,0 +1,35 @@
+[
+  {
+    "id": "main_faq_menu",
+    "type": "menu",
+    "question": "Menú Principal de FAQs",
+    "message": "Entendido. ¿Sobre qué tema te gustaría consultar? 🔍",
+    "category": "general",
+    "keywords": [
+      "menu",
+      "ayuda",
+      "preguntas"
+    ],
+    "options": [
+      {
+        "id": "opt_gen",
+        "label": "General",
+        "nextBlockId": "faq_cat_direct_general"
+      },
+      {
+        "id": "opt_search",
+        "label": "🔍 Buscar por texto",
+        "nextBlockId": "faq_search_input"
+      },
+      {
+        "id": "81pxb",
+        "label": "planes de pagos",
+        "nextBlockId": "planes de pagos"
+      }
+    ],
+    "active": true,
+    "hits": 2,
+    "createdAt": "2026-05-12T19:27:13.180Z",
+    "updatedAt": "2026-05-13T13:31:34.274Z"
+  }
+]

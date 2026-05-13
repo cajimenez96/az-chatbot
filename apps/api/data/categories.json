@@ -1,0 +1,22 @@
+[
+  {
+    "id": "general",
+    "label": "General"
+  },
+  {
+    "id": "horarios",
+    "label": "Horarios"
+  },
+  {
+    "id": "ubicacion",
+    "label": "Ubicación"
+  },
+  {
+    "id": "vehiculos",
+    "label": "Vehículos"
+  },
+  {
+    "id": "financiacion",
+    "label": "Financiación"
+  }
+]

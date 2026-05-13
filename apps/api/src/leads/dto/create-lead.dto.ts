@@ -1,23 +1,34 @@
-import { IsString, IsOptional, IsEnum } from 'class-validator'
-import type { LeadInterest } from '@az-chatbot/types'
+import { IsString, IsOptional, IsEnum } from "class-validator";
+import type { LeadInterest } from "@az-chatbot/types";
 
 export class CreateLeadDto {
   @IsString()
-  phone: string
+  phone?: string;
 
   @IsOptional()
   @IsString()
-  name?: string
+  name?: string;
 
   @IsOptional()
-  @IsEnum(['autos-nuevos', 'autos-usados', 'financiacion', 'servicios', 'contacto', 'otro'])
-  interest?: LeadInterest
+  @IsEnum([
+    "autos-nuevos",
+    "autos-usados",
+    "financiacion",
+    "servicios",
+    "contacto",
+    "otro",
+  ])
+  interest?: LeadInterest;
 
   @IsOptional()
   @IsString()
-  vehicle?: string
+  email?: string;
 
   @IsOptional()
   @IsString()
-  budget?: string
+  vehicle?: string;
+
+  @IsOptional()
+  @IsString()
+  budget?: string;
 }

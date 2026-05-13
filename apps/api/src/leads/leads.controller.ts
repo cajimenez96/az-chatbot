@@ -41,8 +41,21 @@ export class LeadsController {
     @Query('page') page = 1,
     @Query('limit') limit = 20,
     @Query('status') status?: string,
+    @Query('phone') phone?: string,
   ) {
-    return this.leadsService.findAll({ page: +page, limit: +limit, status })
+    return this.leadsService.findAll({ page: +page, limit: +limit, status, phone })
+  }
+
+  // Bot check for existing lead
+  @Get('check/:phone')
+  async checkExistence(
+    @Headers('x-api-key') apiKey: string,
+    @Param('phone') phone: string,
+  ) {
+    if (apiKey !== this.config.get('BOT_API_KEY')) {
+      throw new UnauthorizedException('Invalid API key')
+    }
+    return this.leadsService.findByPhone(phone)
   }
 
   @UseGuards(JwtAuthGuard)

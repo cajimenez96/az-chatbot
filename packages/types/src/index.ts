@@ -64,12 +64,23 @@ export type FAQCategory =
   | 'servicios'
   | 'general'
 
+export interface FAQOption {
+  id: string
+  label: string
+  answer?: string
+  nextFaqId?: string
+}
+
 export interface IFAQ {
   id: string
-  question: string
-  answer: string
-  category: FAQCategory
+  type: BlockType       // 'message' | 'question' | 'menu'
+  question: string      // El título/activador
+  message: string       // La respuesta/mensaje (reemplaza 'answer')
+  category: string      // ID de la categoría
   keywords: string[]
+  options?: BlockOption[]
+  saveAs?: string
+  nextBlockId?: string
   active: boolean
   hits: number
   createdAt: Date
@@ -77,14 +88,15 @@ export interface IFAQ {
 }
 
 export interface CreateFAQDTO {
+  id?: string
+  type: BlockType
   question: string
-  answer: string
-  category: FAQCategory
+  message: string
+  category: string
   keywords?: string[]
-}
-
-export interface UpdateFAQDTO extends Partial<CreateFAQDTO> {
-  active?: boolean
+  options?: BlockOption[]
+  saveAs?: string
+  nextBlockId?: string
 }
 
 // ─── Metrics ──────────────────────────────────────────────────────────────────
@@ -121,6 +133,38 @@ export interface AuthResponse {
   accessToken: string
   expiresIn: number
 }
+
+// ─── Blocks (Dynamic Flows) ───────────────────────────────────────────────────
+
+export type BlockType = 'message' | 'question' | 'menu'
+
+export interface BlockOption {
+  id: string
+  label: string
+  nextBlockId: string
+}
+
+export interface IBlock {
+  id: string
+  type: BlockType
+  message: string
+  options?: BlockOption[]
+  saveAs?: string // For 'question' type, key to save in state
+  nextBlockId?: string // For 'message' and 'question' type
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface CreateBlockDTO {
+  id?: string
+  type: BlockType
+  message: string
+  options?: BlockOption[]
+  saveAs?: string
+  nextBlockId?: string
+}
+
+export interface UpdateBlockDTO extends Partial<CreateBlockDTO> {}
 
 // ─── API Responses ────────────────────────────────────────────────────────────
 

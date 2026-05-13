@@ -36,23 +36,33 @@ export async function saveLead(data: {
 export async function getConversationStatus(phone: string): Promise<string> {
   try {
     const res = await fetch(`${API_URL}/conversations/${phone}/status`, { headers })
-    if (!res.ok) return 'bot_active'
+    if (!res.ok) {
+      console.error(`[API] getConversationStatus failed (${res.status}):`, await res.text())
+      return 'bot_active'
+    }
     const json = await res.json() as { status: string }
+    console.log(`[API] Status de ${phone}: ${json.status}`)
     return json.status
-  } catch {
+  } catch (e) {
+    console.error('[API] getConversationStatus network error:', e)
     return 'bot_active'
   }
 }
 
 export async function updateConversationStatus(phone: string, status: string) {
   try {
-    await fetch(`${API_URL}/conversations/${phone}/status`, {
+    const res = await fetch(`${API_URL}/conversations/${phone}/status`, {
       method: 'PATCH',
       headers,
       body: JSON.stringify({ status }),
     })
+    if (!res.ok) {
+      console.error(`[API] updateConversationStatus failed (${res.status}):`, await res.text())
+    } else {
+      console.log(`[API] Status de ${phone} actualizado a: ${status}`)
+    }
   } catch (e) {
-    console.error('[API] updateConversationStatus error:', e)
+    console.error('[API] updateConversationStatus network error:', e)
   }
 }
 
@@ -128,5 +138,98 @@ export async function sendConnectedStatus(connected: boolean, retry = 3) {
       return sendConnectedStatus(connected, retry - 1)
     }
     console.error('[API] sendConnectedStatus error final:', e)
+  }
+}
+
+
+
+export async function getFAQ(id: string) {
+  try {
+    const res = await fetch(`${API_URL}/faqs/${id}`, { headers })
+    if (!res.ok) return null
+    return await res.json()
+  } catch (e) {
+    console.error('[API] getFAQ error:', e)
+    return null
+  }
+}
+
+export async function findFAQ(query: string) {
+  try {
+    const res = await fetch(`${API_URL}/faqs/search?q=${encodeURIComponent(query)}`, { headers })
+    if (!res.ok) return null
+    return await res.json()
+  } catch (e) {
+    console.error('[API] findFAQ error:', e)
+    return null
+  }
+}
+
+export async function incrementFAQHit(id: string) {
+  try {
+    await fetch(`${API_URL}/faqs/${id}/hit`, {
+      method: 'PATCH',
+      headers,
+    })
+  } catch (e) {
+    console.error('[API] incrementFAQHit error:', e)
+  }
+}
+
+export async function checkLead(phone: string) {
+  try {
+    const res = await fetch(`${API_URL}/leads/check/${phone}`, { headers })
+    if (!res.ok) return null
+    return await res.json()
+  } catch (e) {
+    console.error('[API] checkLead error:', e)
+    return null
+  }
+}
+
+export async function listFAQs(category?: string) {
+  try {
+    const url = category 
+      ? `${API_URL}/faqs?category=${category}` 
+      : `${API_URL}/faqs`
+    const res = await fetch(url, { headers })
+    if (!res.ok) return []
+    return await res.json()
+  } catch (e) {
+    console.error('[API] listFAQs error:', e)
+    return []
+  }
+}
+
+export async function getBlock(id: string) {
+  try {
+    const res = await fetch(`${API_URL}/blocks/${id}`, { headers })
+    if (!res.ok) return null
+    return await res.json()
+  } catch (e) {
+    console.error('[API] getBlock error:', e)
+    return null
+  }
+}
+
+export async function listBlocks() {
+  try {
+    const res = await fetch(`${API_URL}/blocks`, { headers })
+    if (!res.ok) return []
+    return await res.json()
+  } catch (e) {
+    console.error('[API] listBlocks error:', e)
+    return []
+  }
+}
+
+export async function listCategories() {
+  try {
+    const res = await fetch(`${API_URL}/faqs/categories/all`, { headers })
+    if (!res.ok) return []
+    return await res.json()
+  } catch (e) {
+    console.error('[API] listCategories error:', e)
+    return []
   }
 }

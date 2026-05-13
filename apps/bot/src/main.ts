@@ -1,10 +1,7 @@
+import 'dotenv/config'
 import { createBot, createFlow, MemoryDB } from "@builderbot/bot";
 import { WPPConnectProvider } from "@builderbot/provider-wppconnect";
-import { welcomeFlow } from "./flows/welcome.flow";
-import { autosNuevosFlow } from "./flows/autos-nuevos.flow";
-import { autosUsadosFlow } from "./flows/autos-usados.flow";
-import { financiacionFlow } from "./flows/financiacion.flow";
-import { serviciosFlow } from "./flows/servicios.flow";
+import { dynamicFlow, faqFlow } from "./flows/welcome.flow";
 import { derivacionFlow } from "./flows/derivacion.flow";
 import { sendQrToApi, sendConnectedStatus } from "./services/api.service";
 import * as wppconnect from "@wppconnect-team/wppconnect";
@@ -14,31 +11,12 @@ process.env.DEBUG = "wppconnect:*";
 const main = async () => {
   console.log("🚀 [Renault] Iniciando motor (MODO FORZADO)...");
 
-  // Verificamos conexión con la API antes de seguir
-  try {
-    console.log("🔗 [Bot] Verificando conexión con la API...");
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
-    fetch("http://localhost:3001/api/bot/status", { signal: controller.signal })
-      .then((res) => {})
-      .catch(() => {
-        console.warn(
-          "⚠️ [Bot] No se pudo contactar con la API en http://localhost:3001/api. ¿Está encendida?",
-        );
-      })
-      .finally(() => clearTimeout(timeoutId));
-  } catch (e: unknown) {
-    const error = e as Error;
-    console.error(`Fallo de red al crear instancia: ${error.message}`);
-  }
+  // ... (rest of the logic)
 
   const adapterDB = new MemoryDB();
   const adapterFlow = createFlow([
-    welcomeFlow,
-    autosNuevosFlow,
-    autosUsadosFlow,
-    financiacionFlow,
-    serviciosFlow,
+    dynamicFlow,
+    faqFlow,
     derivacionFlow,
   ]);
 

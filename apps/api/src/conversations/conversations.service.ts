@@ -42,11 +42,24 @@ export class ConversationsService {
   }
 
   async findAll(page = 1, limit = 20) {
-    const [data, total] = await this.repo.findAndCount({
-      order: { lastMessageAt: 'DESC' },
-      skip: (page - 1) * limit,
-      take: limit,
-    })
+    const query = this.repo.createQueryBuilder('conv')
+      .leftJoin('leads', 'lead', 'lead.phone = conv.phone')
+      .select([
+        'conv.id as id',
+        'conv.phone as phone',
+        'conv.status as status',
+        'conv.lastMessageAt as "lastMessageAt"',
+        'MAX(lead.name) as "leadName"',
+        'MAX(lead.email) as "leadEmail"'
+      ])
+      .groupBy('conv.id')
+      .orderBy('conv.lastMessageAt', 'DESC')
+      .offset((page - 1) * limit)
+      .limit(limit)
+
+    const data = await query.getRawMany()
+    const total = await this.repo.count()
+
     return { data, total, page, limit }
   }
 

@@ -1,72 +1,142 @@
-import { addKeyword, EVENTS } from '@builderbot/bot'
-import { autosNuevosFlow } from './autos-nuevos.flow'
-import { autosUsadosFlow } from './autos-usados.flow'
-import { financiacionFlow } from './financiacion.flow'
-import { serviciosFlow } from './servicios.flow'
-import { derivacionFlow } from './derivacion.flow'
-import { updateConversationStatus, saveLead } from '../services/api.service'
+import { addKeyword, EVENTS } from "@builderbot/bot";
+import {
+  updateConversationStatus,
+  saveLead,
+  getConversationStatus,
+  checkLead,
+  getBlock,
+  findFAQ,
+} from "../services/api.service";
+import { FlowRenderer } from "../services/flow-renderer.service";
+import { faqFlow } from "./faq.flow";
+import { derivacionFlow } from "./derivacion.flow";
 
-export const welcomeFlow = addKeyword(EVENTS.WELCOME)
-  .addAction(async (ctx) => {
-    await updateConversationStatus(ctx.from, 'bot_active')
+/**
+ * FLUJO DINÁMICO PRINCIPAL
+ * Este flujo reemplaza toda la lógica hardcodeada anterior.
+ */
+export const dynamicFlow = addKeyword(EVENTS.WELCOME)
+  .addAction(async (ctx, { state, flowDynamic, gotoFlow, endFlow }) => {
+    const waitingFor = state.get("waitingFor");
+    console.log(`[Bot Action] From: ${ctx.from}, waitingFor: ${waitingFor}`);
+
+    if (waitingFor) {
+      console.log(`[Bot Action] Already in flow, skipping welcome.`);
+      return;
+    }
+
+    // 2. Verificar estado de la conversación (humano, etc)
+    const status = await getConversationStatus(ctx.from);
+    if (status === "waiting_human" || status === "human_active") {
+      return endFlow();
+    }
+
+    const existingLead = await checkLead(ctx.from);
+    if (existingLead) {
+      await state.update({
+        name: existingLead.name,
+        email: existingLead.email,
+      });
+    }
+
+    await updateConversationStatus(ctx.from, "bot_active");
+
+    // 3. Empezar siempre por el bloque 'welcome'
+    return await FlowRenderer.renderBlock("welcome", {
+      flowDynamic,
+      state,
+      gotoFlow,
+    });
   })
   .addAnswer(
-    '👋 ¡Hola! Bienvenido a **Renault Argentina**. Para brindarte una mejor atención, ¿me podrías decir tu **nombre completo**?',
+    [],
     { capture: true },
-    async (ctx, { state }) => {
-      await state.update({ name: ctx.body.trim() })
-    }
-  )
-  .addAnswer(
-    '¡Mucho gusto! Por último, ¿cuál es tu **correo electrónico**?',
-    { capture: true },
-    async (ctx, { state, flowDynamic, fallBack }) => {
-      const email = ctx.body.trim()
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-      
-      if (!emailRegex.test(email)) {
-        return fallBack('❌ Ese correo no parece ser válido. ¿Podrías escribirlo de nuevo?')
+    async (ctx, { state, flowDynamic, gotoFlow, fallBack }) => {
+      const userInput = ctx.body.trim();
+      const waitingForId = state.get("waitingFor");
+      console.log(
+        `[Bot] Received: "${userInput}", Waiting for: ${waitingForId}`,
+      );
+
+      if (!waitingForId) return;
+
+      const currentBlock = await getBlock(waitingForId);
+      if (!currentBlock) return;
+
+      // 1. PROCESAR RESPUESTA ACTUAL
+      if (currentBlock.type === "question" && currentBlock.saveAs) {
+        await state.update({ [currentBlock.saveAs]: userInput });
+        if (currentBlock.saveAs === "email") {
+          const name = state.get("name");
+          await saveLead({ phone: ctx.from, name, email: userInput });
+        }
       }
 
-      const name = state.get('name')
-      
-      // Guardamos el lead en la API
-      try {
-        await saveLead({
-          phone: ctx.from,
-          name: name,
-          email: email,
-          status: 'new'
-        })
-      } catch (error) {
-        console.error('Error saving lead:', error)
+      let nextId = currentBlock.nextBlockId;
+
+      // --- LÓGICA ESPECIAL DE FAQs ---
+      if (waitingForId === "faq_search_input") {
+        const faq = await findFAQ(userInput);
+        if (faq) {
+          await state.update({ directFaqId: faq.id });
+          return gotoFlow(faqFlow);
+        } else {
+          await flowDynamic(
+            "No encontré una respuesta específica para eso, pero podés intentar con otras palabras.",
+          );
+          return await FlowRenderer.renderBlock("faq_search_input", {
+            flowDynamic,
+            state,
+            gotoFlow,
+          });
+        }
       }
-      
-      await flowDynamic(`¡Perfecto **${name}**! Ya tengo tus datos registrados.`)
-    }
-  )
-  .addAnswer(
-    [
-      '¿En qué puedo ayudarte hoy?',
-      '',
-      '1️⃣ Autos nuevos',
-      '2️⃣ Autos usados',
-      '3️⃣ Financiación',
-      '4️⃣ Service y mantenimiento',
-      '5️⃣ Hablar con un asesor',
-    ],
-    { capture: true },
-    async (ctx, { gotoFlow, fallBack }) => {
-      const option = ctx.body.trim()
 
-      if (option === '1' || /nuevo/i.test(option)) return gotoFlow(autosNuevosFlow)
-      if (option === '2' || /usado/i.test(option)) return gotoFlow(autosUsadosFlow)
-      if (option === '3' || /financ/i.test(option)) return gotoFlow(financiacionFlow)
-      if (option === '4' || /service|taller|mant/i.test(option)) return gotoFlow(serviciosFlow)
-      if (option === '5' || /asesor|humano|persona/i.test(option)) return gotoFlow(derivacionFlow)
+      if (currentBlock.type === "menu") {
+        const optionIndex = parseInt(userInput) - 1;
+        const selectedOption = currentBlock.options?.[optionIndex];
+        if (selectedOption) {
+          nextId = selectedOption.nextBlockId;
+        } else {
+          await flowDynamic(
+            "❌ Opción inválida. Por favor, elegí un número de la lista.",
+          );
+          return await FlowRenderer.renderBlock(currentBlock, {
+            flowDynamic,
+            state,
+            gotoFlow,
+          });
+        }
+      }
 
-      return fallBack(
-        '❌ No entendí tu respuesta. Por favor elegí una opción del 1 al 5.',
-      )
+      // 2. RENDERIZAR SIGUIENTE BLOQUE
+      if (nextId) {
+        // INTERCEPCIÓN DE FLUJOS ESPECIALES
+        if (nextId === "faq_search") {
+          return gotoFlow(faqFlow);
+        }
+        if (nextId === "human_handoff" || nextId === "derivacion") {
+          return gotoFlow(derivacionFlow);
+        }
+
+        await FlowRenderer.renderBlock(nextId, {
+          flowDynamic,
+          state,
+          gotoFlow,
+        });
+
+        // Si el siguiente bloque también espera respuesta (es question o menu),
+        // usamos fallBack() para que este mismo addAnswer capture el siguiente mensaje.
+        const updatedWaitingFor = state.get("waitingFor");
+        if (updatedWaitingFor) {
+          return fallBack();
+        }
+      } else {
+        // Si no hay más bloques, limpiamos el estado
+        await state.update({ waitingFor: null });
+      }
     },
-  )
+  );
+
+// Flujos auxiliares exportados
+export { faqFlow, derivacionFlow };

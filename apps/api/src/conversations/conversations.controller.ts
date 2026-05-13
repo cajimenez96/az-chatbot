@@ -13,6 +13,7 @@ import { ConfigService } from '@nestjs/config'
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'
 import { ConversationsService } from './conversations.service'
 import type { ConversationStatus } from '@az-chatbot/types'
+import { UpdateStatusDto } from './dto/update-status.dto'
 
 @Controller('conversations')
 export class ConversationsController {
@@ -26,12 +27,12 @@ export class ConversationsController {
   async updateStatus(
     @Headers('x-api-key') apiKey: string,
     @Param('phone') phone: string,
-    @Body('status') status: ConversationStatus,
+    @Body() dto: UpdateStatusDto,
   ) {
     if (apiKey !== this.config.get('BOT_API_KEY')) {
       throw new UnauthorizedException('Invalid API key')
     }
-    return this.conversationsService.updateStatus(phone, status)
+    return this.conversationsService.updateStatus(phone, dto.status)
   }
 
   @Get(':phone/status')

@@ -1,0 +1,132 @@
+[
+  {
+    "id": "welcome",
+    "type": "question",
+    "message": "👋 ¡Hola! Bienvenido a *Pepe El Pollo*. Mi nombre es Emiliano, Para brindarte una mejor atención, ¿me podrías decir tu *Nombre Completo*?",
+    "saveAs": "name",
+    "nextBlockId": "ask_email",
+    "createdAt": "2026-05-12T14:35:00.000Z",
+    "updatedAt": "2026-05-13T13:16:34.725Z"
+  },
+  {
+    "id": "ask_email",
+    "type": "question",
+    "message": "¡Mucho gusto! {name} Por último, ¿cuál es tu *correo electrónico*?",
+    "saveAs": "email",
+    "nextBlockId": "main_menu",
+    "createdAt": "2026-05-12T14:35:00.000Z",
+    "updatedAt": "2026-05-13T13:18:02.608Z"
+  },
+  {
+    "id": "main_menu",
+    "type": "menu",
+    "message": "¡Perfecto *{name}*! Ya tengo tus datos registrados. ¿En qué puedo ayudarte hoy?",
+    "options": [
+      {
+        "id": "5hgsb",
+        "label": "Chatear con un Humano",
+        "nextBlockId": "human_handoff"
+      },
+      {
+        "id": "zy6yl",
+        "label": "Preguntas frecuentes ",
+        "nextBlockId": "faq_search_direct_main_faq_menu"
+      },
+      {
+        "id": "uppnj",
+        "label": "Planes de pagos",
+        "nextBlockId": "planes de pagos"
+      }
+    ],
+    "createdAt": "2026-05-12T14:35:00.000Z",
+    "updatedAt": "2026-05-13T13:24:26.737Z"
+  },
+  {
+    "id": "autos viejos ",
+    "type": "menu",
+    "message": "los autos viejos disponibles son los siguientes:\n\nselecciona una opción para continuar",
+    "options": [
+      {
+        "id": "stde4",
+        "label": "Marca Fiat",
+        "nextBlockId": "auto_fiat"
+      }
+    ],
+    "saveAs": "",
+    "nextBlockId": "main_menu",
+    "createdAt": "2026-05-12T18:02:48.238Z",
+    "updatedAt": "2026-05-12T19:07:03.132Z"
+  },
+  {
+    "id": "auto_fiat",
+    "type": "menu",
+    "message": "tenemos el nuevo auto fiat para este 2026",
+    "options": [
+      {
+        "id": "ta637",
+        "label": "hablar con un humano",
+        "nextBlockId": "human_handoff"
+      },
+      {
+        "id": "e172y",
+        "label": "volver al menu",
+        "nextBlockId": "main_menu"
+      }
+    ],
+    "saveAs": "",
+    "nextBlockId": "",
+    "createdAt": "2026-05-12T19:06:01.056Z",
+    "updatedAt": "2026-05-12T19:06:39.818Z"
+  },
+  {
+    "id": "planes de pagos",
+    "type": "menu",
+    "message": "Estos son los planes de pagos que tenemos disponigles, selecciona algunos",
+    "options": [
+      {
+        "id": "xlatp",
+        "label": "Mensual",
+        "nextBlockId": "plan mensualk"
+      },
+      {
+        "id": "ase0i",
+        "label": "Efectivo",
+        "nextBlockId": "plan de pago efectivo"
+      },
+      {
+        "id": "thf1r",
+        "label": "Volver al menu Principal",
+        "nextBlockId": "main_menu"
+      },
+      {
+        "id": "zosx6",
+        "label": "Chatear con un humano",
+        "nextBlockId": "human_handoff"
+      }
+    ],
+    "saveAs": "",
+    "nextBlockId": "",
+    "createdAt": "2026-05-13T13:21:33.108Z",
+    "updatedAt": "2026-05-13T13:31:19.649Z"
+  },
+  {
+    "id": "plan de pago efectivo",
+    "type": "message",
+    "message": "los planes de pago en efectivo tiene .... \n\nseleccionar otra opcion de planes de pago ",
+    "options": [],
+    "saveAs": "",
+    "nextBlockId": "planes de pagos",
+    "createdAt": "2026-05-13T13:23:35.134Z",
+    "updatedAt": "2026-05-13T13:38:08.025Z"
+  },
+  {
+    "id": "plan mensualk",
+    "type": "message",
+    "message": "los planes de pago mesualtes tiene .... \n\nseleccionar otra opcion de planes de pago ",
+    "options": [],
+    "saveAs": "",
+    "nextBlockId": "planes de pagos",
+    "createdAt": "2026-05-13T13:23:51.043Z",
+    "updatedAt": "2026-05-13T13:23:51.043Z"
+  }
+]

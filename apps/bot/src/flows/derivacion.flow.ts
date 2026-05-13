@@ -1,4 +1,5 @@
 import { addKeyword } from "@builderbot/bot";
+import { updateConversationStatus } from "../services/api.service";
 
 export const derivacionFlow = addKeyword([
   "asesor",
@@ -9,6 +10,7 @@ export const derivacionFlow = addKeyword([
   "Entendido. Un asesor humano revisará tu caso en breve. 👨‍💻",
   null,
   async (ctx, { provider }) => {
+    await updateConversationStatus(ctx.from, 'waiting_human');
     console.log(`🚀 [Bot] EJECUTANDO FLUJO DE DERIVACIÓN PARA: ${ctx.from}`);
     const client = (provider as any).vendor || (provider as any).client;
 

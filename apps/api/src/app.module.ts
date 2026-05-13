@@ -8,6 +8,7 @@ import { MetricsModule } from './metrics/metrics.module'
 import { AuthModule } from './auth/auth.module'
 import { SeedModule } from './database/seed.module'
 import { BotModule } from './bot/bot.module'
+import { BlocksModule } from './blocks/blocks.module'
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { BotModule } from './bot/bot.module'
     AuthModule,
     LeadsModule,
     FAQsModule,
+    BlocksModule,
     ConversationsModule,
     MetricsModule,
     SeedModule,
