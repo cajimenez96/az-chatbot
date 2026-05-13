@@ -4,6 +4,7 @@ import React from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import { useAuthStore } from '@/store/useAuthStore'
 import { Users, MessageSquare, BarChart3, LogOut, Car, Smartphone } from 'lucide-react'
+import business from '@/../business.json';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter()
@@ -45,7 +46,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
               clipPath: 'polygon(50% 0%, 100% 50%, 50% 100%, 0% 50%)',
             }}
           />
-          <span style={{ font: 'var(--text-heading-sm)', letterSpacing: '1px' }}>RENAULT</span>
+          <span style={{ font: 'var(--text-heading-sm)', letterSpacing: '1px' }}>{business.client.name.toUpperCase()}</span>
         </div>
 
         <nav style={{ flex: 1 }}>

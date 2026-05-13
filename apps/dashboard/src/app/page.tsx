@@ -8,6 +8,7 @@ import { useAuthStore } from '@/store/useAuthStore'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import type { LoginDTO, AuthResponse } from '@az-chatbot/types'
+import business from '@/../business.json';
 
 export default function LoginPage() {
   const router = useRouter()
@@ -97,7 +98,7 @@ export default function LoginPage() {
             PANEL DE GESTIÓN
           </h1>
           <p style={{ font: 'var(--text-body-sm)', color: 'var(--color-mute)' }}>
-            Iniciá sesión para gestionar los bots de Renault
+            Iniciá sesión para gestionar los bots de {business.client.name}
           </p>
         </header>
 
@@ -120,7 +121,7 @@ export default function LoginPage() {
             type="email" 
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="admin@renault.com" 
+            placeholder={`admin@${business.client.name.toLowerCase().replace(/\s+/g, '')}.com`} 
             required 
           />
           <Input 
@@ -159,7 +160,7 @@ export default function LoginPage() {
 
         <footer style={{ marginTop: 'var(--space-xxl)', textAlign: 'center' }}>
           <p style={{ font: 'var(--text-caption)', color: 'var(--color-stone)' }}>
-            © 2024 Renault Argentina S.A.
+            © 2026 AZ Marketing
           </p>
         </footer>
       </div>

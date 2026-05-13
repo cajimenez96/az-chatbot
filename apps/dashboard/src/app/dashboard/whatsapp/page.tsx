@@ -4,11 +4,12 @@ import React from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { QRCodeSVG } from 'qrcode.react'
 import { Smartphone, CheckCircle2, RefreshCcw, AlertTriangle } from 'lucide-react'
+import business from '@/../business.json';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
 
 export default function WhatsAppPage() {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('renault-auth-storage') : null
+  const token = typeof window !== 'undefined' ? localStorage.getItem('chatbot-auth-storage') : null
   const parsedToken = token ? JSON.parse(token)?.state?.token : null
 
   const { data, isLoading, isError, refetch, dataUpdatedAt } = useQuery({
@@ -37,7 +38,7 @@ export default function WhatsAppPage() {
           CONEXIÓN WHATSAPP
         </h1>
         <p style={{ font: 'var(--text-body-md)', color: 'var(--color-ash)' }}>
-          Vinculá tu número de Renault para activar el chatbot.
+          Vinculá tu número de {business.client.name} para activar el chatbot.
         </p>
       </header>
 

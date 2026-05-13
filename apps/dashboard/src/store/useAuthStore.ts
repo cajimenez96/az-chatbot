@@ -34,7 +34,7 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: () => !!get().token,
     }),
     {
-      name: 'renault-auth-storage',
+      name: 'chatbot-auth-storage',
       storage: createJSONStorage(() => localStorage),
     }
   )

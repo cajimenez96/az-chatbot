@@ -1,0 +1,11 @@
+{
+  "client": {
+    "name": "Renault",
+    "company": "Renault Argentina S.A.",
+    "shortName": "Renault",
+    "description": "Panel administrativo de atención automatizada Renault"
+  },
+  "owner": {
+    "name": "AZ Marketing"
+  }
+}
