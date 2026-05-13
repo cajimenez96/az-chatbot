@@ -7,5 +7,34 @@
   },
   "owner": {
     "name": "AZ Marketing"
+  },
+  "theme": {
+    "colors": {
+      "primary": "#ffed00",
+      "primaryDeep": "#e6d200",
+      "onPrimary": "#000000",
+      "ink": "#000000",
+      "body": "#222222",
+      "charcoal": "#333333",
+      "mute": "#666666",
+      "ash": "#8a8a8a",
+      "stone": "#c4c4c4",
+      "onDark": "#ffffff",
+      "onDarkMute": "rgba(255,255,255,0.72)",
+      "canvas": "#ffffff",
+      "surfaceSoft": "#f7f7f7",
+      "surfaceCard": "#ffffff",
+      "surfaceDark": "#000000",
+      "surfaceDeep": "#111111",
+      "hairline": "#f2f2f2",
+      "hairlineStrong": "#000000",
+      "dividerDark": "rgba(255,255,255,0.16)",
+      "badgeNew": "#ffed00",
+      "link": "#0000ee",
+      "error": "#be6464",
+      "warning": "#f0ad4e",
+      "success": "#8dc572",
+      "info": "#337ab7"
+    }
   }
 }
