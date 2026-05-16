@@ -118,15 +118,5 @@
     "nextBlockId": "planes de pagos",
     "createdAt": "2026-05-13T13:23:35.134Z",
     "updatedAt": "2026-05-13T13:38:08.025Z"
-  },
-  {
-    "id": "plan mensualk",
-    "type": "message",
-    "message": "los planes de pago mesualtes tiene .... \n\nseleccionar otra opcion de planes de pago ",
-    "options": [],
-    "saveAs": "",
-    "nextBlockId": "planes de pagos",
-    "createdAt": "2026-05-13T13:23:51.043Z",
-    "updatedAt": "2026-05-13T13:23:51.043Z"
   }
 ]

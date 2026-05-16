@@ -12,18 +12,11 @@ export default function MainLayout({
   return (
     <SidebarProvider>
       <AppSidebar />
-      <main
-        style={{
-          flex: 1,
-          padding: "32px",
-          overflowY: "auto",
-          backgroundColor: "#ffffff",
-        }}
-      >
-        <div style={{ marginBottom: "16px" }}>
+      <main className="flex-1 h-screen flex flex-col overflow-hidden bg-white">
+        <div className="p-4 px-8">
           <SidebarTrigger />
         </div>
-        {children}
+        <div className="flex-1 overflow-hidden">{children}</div>
       </main>
     </SidebarProvider>
   );

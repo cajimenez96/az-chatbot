@@ -1,257 +1,362 @@
-import React, { useState, useEffect } from 'react'
-import { IBlock, BlockType, BlockOption } from '@az-chatbot/types'
-import { useBlocksStore } from '@/store/useBlocksStore'
-import { Button } from '../ui/Button'
-import { Input } from '../ui/Input'
+import React, { useState, useEffect } from "react";
+import { IBlock, BlockType, BlockOption } from "@az-chatbot/types";
+import { useBlocksStore } from "@/store/useBlocksStore";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Save, X, Plus, Trash2, Info } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface BlockEditorProps {
-  block: IBlock | null
-  onCancel: () => void
+  block: IBlock | null;
+  onCancel: () => void;
+  onChange?: (updatedBlock: Partial<IBlock>) => void;
 }
 
-export const BlockEditor: React.FC<BlockEditorProps> = ({ block, onCancel }) => {
-  const { createBlock, updateBlock, blocks } = useBlocksStore()
+export const BlockEditor: React.FC<BlockEditorProps> = ({
+  block,
+  onCancel,
+  onChange,
+}) => {
+  const { createBlock, updateBlock, blocks } = useBlocksStore();
   const [formData, setFormData] = useState<Partial<IBlock>>({
-    id: '',
-    type: 'message',
-    message: '',
+    id: "",
+    type: "message",
+    message: "",
     options: [],
-    saveAs: '',
-    nextBlockId: '',
-  })
+    saveAs: "",
+    nextBlockId: "",
+  });
+
+  // Notificar cambios al padre para la vista previa en vivo
+  useEffect(() => {
+    if (onChange) {
+      onChange(formData);
+    }
+  }, [formData, onChange]);
 
   useEffect(() => {
     if (block) {
-      setFormData(block)
+      setFormData(block);
     } else {
       setFormData({
-        id: '',
-        type: 'message',
-        message: '',
+        id: "",
+        type: "message",
+        message: "",
         options: [],
-        saveAs: '',
-        nextBlockId: '',
-      })
+        saveAs: "",
+        nextBlockId: "",
+      });
     }
-  }, [block])
+  }, [block]);
 
   const handleSave = async () => {
     if (block) {
-      await updateBlock(block.id, formData)
+      await updateBlock(block.id, formData);
     } else {
-      await createBlock(formData as any)
+      await createBlock(formData as any);
     }
-    onCancel()
-  }
+    onCancel();
+  };
 
   const addOption = () => {
     const newOption: BlockOption = {
       id: Math.random().toString(36).substring(2, 7),
-      label: '',
-      nextBlockId: '',
-    }
-    setFormData({ ...formData, options: [...(formData.options || []), newOption] })
-  }
+      label: "",
+      nextBlockId: "",
+    };
+    setFormData({
+      ...formData,
+      options: [...(formData.options || []), newOption],
+    });
+  };
 
-  const updateOption = (index: number, field: keyof BlockOption, value: string) => {
-    const newOptions = [...(formData.options || [])]
-    newOptions[index] = { ...newOptions[index], [field]: value }
-    setFormData({ ...formData, options: newOptions })
-  }
+  const updateOption = (
+    index: number,
+    field: keyof BlockOption,
+    value: string,
+  ) => {
+    const newOptions = [...(formData.options || [])];
+    newOptions[index] = { ...newOptions[index], [field]: value };
+    setFormData({ ...formData, options: newOptions });
+  };
 
   const removeOption = (index: number) => {
-    setFormData({ ...formData, options: (formData.options || []).filter((_, i) => i !== index) })
-  }
+    setFormData({
+      ...formData,
+      options: (formData.options || []).filter((_, i) => i !== index),
+    });
+  };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '40px', padding: '40px', backgroundColor: 'white', borderRadius: 'var(--rounded-none)', border: '1px solid var(--color-hairline-strong)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid var(--color-hairline)', paddingBottom: '24px' }}>
-        <h2 style={{ font: 'var(--text-heading-md)', color: 'var(--color-ink)', textTransform: 'uppercase' }}>
-          {block ? `Configurar: ${block.id}` : 'Crear Nuevo Bloque'}
-        </h2>
-        <div style={{ display: 'flex', gap: '12px' }}>
-          <Button variant="outline" onClick={onCancel}>Cancelar</Button>
-          <Button onClick={handleSave}>Guardar</Button>
-        </div>
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '32px' }}>
-        <Input 
-          label="ID del Bloque"
-          value={formData.id} 
-          onChange={(e) => setFormData({ ...formData, id: e.target.value })} 
-          placeholder="ej: welcome"
-          disabled={!!block}
-        />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ font: 'var(--text-overline)', color: 'var(--color-mute)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 'bold' }}>Tipo de Bloque</label>
-          <select 
-            style={{ 
-              width: '100%', 
-              height: '48px', 
-              padding: '12px 0', 
-              borderRadius: 'var(--rounded-none)', 
-              border: 'none',
-              borderBottom: '1px solid var(--color-stone)', 
-              backgroundColor: 'transparent', 
-              font: 'var(--text-body-md)', 
-              outline: 'none', 
-              transition: 'all 0.2s'
-            }}
-            onFocus={(e) => e.currentTarget.style.borderBottom = '1px solid var(--color-ink)'}
-            onBlur={(e) => e.currentTarget.style.borderBottom = '1px solid var(--color-stone)'}
-            value={formData.type}
-            onChange={(e) => setFormData({ ...formData, type: e.target.value as BlockType })}
-          >
-            <option value="message">Mensaje Simple</option>
-            <option value="question">Pregunta (Captura de dato)</option>
-            <option value="menu">Menú de Opciones</option>
-          </select>
-        </div>
-      </div>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-        <label style={{ font: 'var(--text-overline)', color: 'var(--color-mute)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 'bold' }}>Contenido del Mensaje</label>
-        <textarea 
-          style={{ 
-            width: '100%', 
-            padding: '16px', 
-            borderRadius: 'var(--rounded-none)', 
-            border: '1px solid var(--color-stone)', 
-            font: 'var(--text-body-md)', 
-            outline: 'none', 
-            minHeight: '150px', 
-            backgroundColor: 'var(--color-surface-soft)', 
-            transition: 'all 0.2s'
-          }}
-          onFocus={(e) => e.currentTarget.style.borderColor = 'var(--color-ink)'}
-          onBlur={(e) => e.currentTarget.style.borderColor = 'var(--color-stone)'}
-          value={formData.message}
-          onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-          placeholder="Escribí el mensaje que verá el usuario en WhatsApp..."
-        />
-        <p style={{ font: 'var(--text-caption)', color: 'var(--color-ash)', marginTop: '8px', textTransform: 'uppercase', fontStyle: 'italic' }}>Tip: Usá &#123;name&#125; para personalizar.</p>
-      </div>
-
-      {formData.type === 'question' && (
-        <Input 
-          label="Variable de almacenamiento (saveAs)"
-          value={formData.saveAs} 
-          onChange={(e) => setFormData({ ...formData, saveAs: e.target.value })} 
-          placeholder="ej: nombre_cliente"
-        />
-      )}
-
-      {(formData.type === 'message' || formData.type === 'question') && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <label style={{ font: 'var(--text-overline)', color: 'var(--color-mute)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 'bold' }}>Siguiente Paso</label>
-          <select 
-            style={{ 
-              width: '100%', 
-              height: '48px', 
-              padding: '12px 0', 
-              borderRadius: 'var(--rounded-none)', 
-              border: 'none',
-              borderBottom: '1px solid var(--color-stone)', 
-              backgroundColor: 'transparent', 
-              font: 'var(--text-body-md)', 
-              outline: 'none', 
-              transition: 'all 0.2s'
-            }}
-            onFocus={(e) => e.currentTarget.style.borderBottom = '1px solid var(--color-ink)'}
-            onBlur={(e) => e.currentTarget.style.borderBottom = '1px solid var(--color-stone)'}
-            value={formData.nextBlockId}
-            onChange={(e) => setFormData({ ...formData, nextBlockId: e.target.value })}
-          >
-            <option value="">Ninguno (Fin de la conversación)</option>
-            {/* Bloques reales */}
-            {blocks?.filter(b => b && b.id).map(b => (
-              <option key={b.id} value={b.id}>{b.id.toUpperCase()}</option>
-            ))}
-            {/* Bloques especiales (Virtuales) */}
-            <optgroup label="Acciones Especiales">
-              <option value="faq_search_direct_main_faq_menu">📖 MENÚ DE FAQs</option>
-              <option value="faq_search">🔍 BUSCADOR (Directo)</option>
-              <option value="human_handoff">👨‍💻 DERIVAR A HUMANO</option>
-            </optgroup>
-          </select>
-        </div>
-      )}
-
-      {formData.type === 'menu' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', paddingTop: '16px', borderTop: '1px solid var(--color-hairline)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h3 style={{ font: 'var(--text-heading-sm)', color: 'var(--color-ink)', textTransform: 'uppercase' }}>Opciones del Menú</h3>
-            <Button variant="ghost" size="sm" onClick={addOption} style={{ width: 'auto' }}>+ Añadir Opción</Button>
+    <div className="flex flex-col gap-8 p-4! bg-canvas border border-hairline rounded-lg shadow-sm mb-15!">
+      <header className="flex items-center justify-between border-b border-hairline pb-6!">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-on-primary">
+            <Edit3 size={16} />
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
+          <h2 className="text-xl font-medium text-ink tracking-tight font-heading uppercase">
+            {block ? `Editando: ${block.id}` : "Nuevo Bloque"}
+          </h2>
+        </div>
+        <div className="flex gap-3">
+          <Button
+            variant="outline"
+            onClick={onCancel}
+            className="rounded-full px-2! h-9 border-hairline hover:bg-surface-soft transition-all text-xs font-semibold uppercase tracking-wider"
+          >
+            Cancelar
+          </Button>
+          <Button
+            onClick={handleSave}
+            className="rounded-full px-3! h-9 bg-primary! hover:bg-ink-deep! text-on-primary! text-xs font-bold uppercase tracking-wider transition-all active:scale-95 flex items-center justify-center gap-2 border-none! shadow-sm"
+          >
+            <Save size={14} /> Guardar
+          </Button>
+        </div>
+      </header>
+
+      <div className="grid grid-cols-2 gap-8">
+        <div className="flex flex-col gap-2">
+          <label className="text-[10px] font-bold text-mute uppercase tracking-widest ml-4">
+            Identificador Único
+          </label>
+          <Input
+            value={formData.id}
+            onChange={(e) => setFormData({ ...formData, id: e.target.value })}
+            placeholder="ej: saludo_inicial"
+            disabled={!!block}
+            className="h-11 rounded-full border-hairline bg-surface-soft focus:bg-canvas transition-all font-medium text-ink px-3!"
+          />
+        </div>
+        <div className="flex flex-col gap-2">
+          <label className="text-[10px] font-bold text-mute uppercase tracking-widest ml-4">
+            Tipo de Interacción
+          </label>
+          <div className="relative">
+            <select
+              className="w-full h-11 px-3! bg-surface-soft border border-hairline rounded-full focus:bg-canvas focus:border-ink outline-none transition-all text-sm font-medium text-ink appearance-none cursor-pointer"
+              value={formData.type}
+              onChange={(e) =>
+                setFormData({ ...formData, type: e.target.value as BlockType })
+              }
+            >
+              <option value="message">Mensaje Informativo</option>
+              <option value="question">Pregunta con Respuesta</option>
+              <option value="menu">Menú de Opciones (Botones)</option>
+            </select>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-mute">
+              <svg
+                width="10"
+                height="6"
+                viewBox="0 0 10 6"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M1 1L5 5L9 1"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        <label className="text-[10px] font-bold text-mute uppercase tracking-widest ml-4">
+          Mensaje de WhatsApp
+        </label>
+        <textarea
+          className="w-full p-3! border border-hairline rounded-2xl focus:border-ink outline-none min-h-[140px] bg-surface-soft focus:bg-canvas transition-all text-sm font-normal leading-relaxed text-ink placeholder:text-mute resize-none"
+          value={formData.message}
+          onChange={(e) =>
+            setFormData({ ...formData, message: e.target.value })
+          }
+          placeholder="Escribí el contenido que enviará el asistente..."
+        />
+        {formData.type === "question" && (
+          <div className="flex items-center gap-2 mt-1! ml-4!">
+            <Info size={12} className="text-primary" />
+            <p className="text-[13px] text-mute font-medium">
+              Usá{" "}
+              <code className="text-ink font-bold bg-surface-soft px-1 rounded">
+                {"{name}"}
+              </code>{" "}
+              para insertar el nombre del usuario automáticamente.
+            </p>
+          </div>
+        )}
+      </div>
+
+      {formData.type === "question" && (
+        <div className="flex flex-col gap-2 animate-in slide-in-from-top-2 duration-300">
+          <label className="text-[10px] font-bold text-mute uppercase tracking-widest ">
+            Guardar respuesta en variable
+          </label>
+          <Input
+            value={formData.saveAs}
+            onChange={(e) =>
+              setFormData({ ...formData, saveAs: e.target.value })
+            }
+            placeholder="ej: email_usuario"
+            className="h-11 rounded-full border-hairline bg-surface-soft focus:bg-canvas transition-all font-medium text-ink px-5!"
+          />
+        </div>
+      )}
+
+      {(formData.type === "message" || formData.type === "question") && (
+        <div className="flex flex-col gap-2">
+          <label className="text-[10px] font-bold text-mute uppercase tracking-widest ml-4">
+            ¿Qué pasa después?
+          </label>
+          <div className="relative">
+            <select
+              className="w-full h-11 px-3! bg-surface-soft border border-hairline rounded-full focus:bg-canvas focus:border-ink outline-none transition-all text-sm font-medium text-ink appearance-none cursor-pointer"
+              value={formData.nextBlockId}
+              onChange={(e) =>
+                setFormData({ ...formData, nextBlockId: e.target.value })
+              }
+            >
+              <option value="">Finalizar conversación</option>
+              <optgroup label="Bloques Existentes" className="font-bold ">
+                {blocks
+                  ?.filter((b) => b && b.id && b.id !== formData.id)
+                  .map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.id.toUpperCase()}
+                    </option>
+                  ))}
+              </optgroup>
+              <optgroup label="Acciones del Sistema" className="font-bold">
+                <option value="faq_search_direct_main_faq_menu">
+                  MENÚ DE FAQs PRINCIPAL
+                </option>
+                <option value="faq_search">BUSCADOR INTELIGENTE</option>
+                <option value="human_handoff">
+                  DERIVAR A UN AGENTE HUMANO
+                </option>
+              </optgroup>
+            </select>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-mute">
+              <svg
+                width="10"
+                height="6"
+                viewBox="0 0 10 6"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M1 1L5 5L9 1"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {formData.type === "menu" && (
+        <div className="flex flex-col gap-6 pt-8 border-t border-hairline mt-2 animate-in slide-in-from-top-4 duration-500">
+          <div className="flex items-center justify-between mt-2.5!">
+            <h3 className="text-xs font-bold text-ink uppercase tracking-widest ">
+              Opciones del Menú (Botones)
+            </h3>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={addOption}
+              className="rounded-full bg-surface-soft hover:bg-hairline px-4 h-8 text-[10px] font-bold uppercase tracking-wider flex gap-1.5"
+            >
+              <Plus size={14} /> Añadir Botón
+            </Button>
+          </div>
+          <div className="flex flex-col gap-4">
             {formData.options?.map((opt, i) => (
-              <div key={opt.id} style={{ display: 'flex', gap: '24px', alignItems: 'flex-end', backgroundColor: 'var(--color-surface-soft)', padding: '24px', border: '1px solid var(--color-hairline)', position: 'relative' }}>
-                <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                  <Input 
-                    label={`Etiqueta #${i + 1}`}
-                    value={opt.label} 
-                    onChange={(e) => updateOption(i, 'label', e.target.value)} 
-                    placeholder="Texto del botón"
-                  />
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <label style={{ font: 'var(--text-overline)', color: 'var(--color-mute)', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 'bold' }}>Destino</label>
-                    <select 
-                      style={{ 
-                        width: '100%', 
-                        height: '48px', 
-                        padding: '12px 0', 
-                        borderRadius: 'var(--rounded-none)', 
-                        border: 'none',
-                        borderBottom: '1px solid var(--color-stone)', 
-                        backgroundColor: 'transparent', 
-                        font: 'var(--text-body-sm)', 
-                        outline: 'none', 
-                        transition: 'all 0.2s'
-                      }}
-                      onFocus={(e) => e.currentTarget.style.borderBottom = '1px solid var(--color-ink)'}
-                      onBlur={(e) => e.currentTarget.style.borderBottom = '1px solid var(--color-stone)'}
-                      value={opt.nextBlockId}
-                      onChange={(e) => updateOption(i, 'nextBlockId', e.target.value)}
-                    >
-                      <option value="">Seleccionar bloque...</option>
-                      {/* Bloques reales */}
-                      {blocks.filter(b => b.id).map(b => (
-                        <option key={b.id} value={b.id}>{b.id.toUpperCase()}</option>
-                      ))}
-                      {/* Bloques especiales (Virtuales) */}
-                      <optgroup label="Acciones Especiales">
-                        <option value="faq_search_direct_main_faq_menu">📖 MENÚ DE FAQs</option>
-                        <option value="faq_search">🔍 BUSCADOR (Directo)</option>
-                        <option value="human_handoff">👨‍💻 DERIVAR A HUMANO</option>
-                      </optgroup>
-                    </select>
+              <div
+                key={opt.id}
+                className="flex items-end gap-4 bg-surface-soft p-4 rounded-2xl border border-hairline relative group transition-all hover:bg-canvas hover:border-hairline-strong shadow-sm"
+              >
+                <div className="flex-1 grid grid-cols-2 gap-4 p-3!">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[9px] font-bold text-mute uppercase tracking-widest ml-2 ">
+                      Texto del Botón
+                    </label>
+                    <Input
+                      value={opt.label}
+                      onChange={(e) => updateOption(i, "label", e.target.value)}
+                      placeholder="ej: Ver precios"
+                      className="h-9 rounded-full border-hairline bg-canvas px-3! text-xs font-medium"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[9px] font-bold text-mute uppercase tracking-widest ml-2">
+                      Ir al Bloque
+                    </label>
+                    <div className="relative">
+                      <select
+                        className="w-full h-9 px-3! bg-canvas border border-hairline rounded-full focus:border-ink outline-none transition-all text-xs font-medium text-ink appearance-none cursor-pointer"
+                        value={opt.nextBlockId}
+                        onChange={(e) =>
+                          updateOption(i, "nextBlockId", e.target.value)
+                        }
+                      >
+                        <option value="">Seleccionar...</option>
+                        {blocks
+                          .filter((b) => b.id)
+                          .map((b) => (
+                            <option key={b.id} value={b.id}>
+                              {b.id.toUpperCase()}
+                            </option>
+                          ))}
+                        <option value="human_handoff">DERIVAR A HUMANO</option>
+                      </select>
+                      <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-mute">
+                        <svg
+                          width="8"
+                          height="5"
+                          viewBox="0 0 10 6"
+                          fill="none"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path
+                            d="M1 1L5 5L9 1"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <button 
-                  onClick={() => removeOption(i)} 
-                  style={{ 
-                    position: 'absolute', 
-                    top: '8px', 
-                    right: '8px', 
-                    border: 'none', 
-                    background: 'none', 
-                    cursor: 'pointer', 
-                    color: 'var(--color-ash)',
-                    transition: 'color 0.2s'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-error)'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-ash)'}
+                <button
+                  onClick={() => removeOption(i)}
+                  className="w-8 h-8 mb-3.5! me-3.5! bg-canvas border border-hairline rounded-full flex items-center justify-center text-mute hover:text-error hover:border-error transition-all shadow-sm shrink-0"
                 >
-                  <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <Trash2 size={14} />
                 </button>
               </div>
             ))}
+            {(!formData.options || formData.options.length === 0) && (
+              <div className="text-center p-8 border border-hairline border-dashed rounded-2xl bg-white/50">
+                <p className="text-xs text-mute font-medium py-6!">
+                  No hay opciones configuradas aún.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       )}
     </div>
-  )
-}
+  );
+};
+
+// Re-importing missing Lucide components since I changed the imports
+import { Edit3 } from "lucide-react";

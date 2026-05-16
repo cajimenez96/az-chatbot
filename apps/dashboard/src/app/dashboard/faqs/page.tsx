@@ -3,8 +3,8 @@
 import { Plus, Search, Database, Trash2, Settings, X, MessageSquare, HelpCircle, List } from "lucide-react";
 import { useFAQsStore } from "@/store/useFAQsStore";
 import { useBlocksStore } from "@/store/useBlocksStore";
-import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { WhatsAppPreview } from "@/components/builder/WhatsAppPreview";
 import { useEffect, useState } from "react";
 import type { IFAQ, BlockType, BlockOption } from "@az-chatbot/types";

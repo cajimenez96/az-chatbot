@@ -1,50 +1,50 @@
-import React from 'react'
+import React from "react";
 
 interface WhatsAppPreviewProps {
-  message: string
-  type: 'message' | 'question' | 'menu'
-  options?: { label: string }[]
+  message: string;
+  type: "message" | "question" | "menu";
+  options?: { label: string }[];
 }
 
-export const WhatsAppPreview: React.FC<WhatsAppPreviewProps> = ({ message, type, options }) => {
+export const WhatsAppPreview: React.FC<WhatsAppPreviewProps> = ({
+  message,
+  type,
+  options,
+}) => {
   return (
-    <div style={{ width: '320px', backgroundColor: 'white', border: '1px solid var(--color-hairline-strong)', borderRadius: 'var(--rounded-none)', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
+    <div className="w-[320px] bg-canvas border border-hairline rounded-lg overflow-hidden shadow-sm">
       {/* WhatsApp Header */}
-      <div style={{ backgroundColor: '#075e54', padding: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <div style={{ width: '40px', height: '40px', backgroundColor: '#e2e8f0', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
+      <div className="bg-[#075e54] p-4 flex items-center gap-3">
+        <div className="w-10 h-10 bg-surface-soft rounded-full flex items-center justify-center text-mute">
           <svg width="24" height="24" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+            <path
+              fillRule="evenodd"
+              d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"
+              clipRule="evenodd"
+            />
           </svg>
         </div>
-        <div>
-          <p style={{ color: 'white', fontWeight: 'bold', fontSize: '14px', margin: 0 }}>Renault Bot</p>
-          <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '10px', margin: 0 }}>En línea</p>
+        <div className="leading-tight">
+          <p className="text-white font-medium text-sm tracking-tight font-heading">Assistant</p>
+          <p className="text-white/70 text-[10px]">En línea</p>
         </div>
       </div>
 
       {/* Chat Area */}
-      <div style={{ height: '400px', backgroundColor: '#e5ddd5', padding: '16px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        <div style={{ backgroundColor: 'white', padding: '12px', borderRadius: '8px', borderTopLeftRadius: 0, boxShadow: '0 1px 2px rgba(0,0,0,0.1)', maxWidth: '85%', alignSelf: 'flex-start', position: 'relative' }}>
-          <p style={{ fontSize: '14px', color: '#1f2937', whiteSpace: 'pre-wrap', margin: 0 }}>{message}</p>
-          <p style={{ fontSize: '10px', color: '#9ca3af', textAlign: 'right', marginTop: '4px', margin: 0 }}>14:41</p>
+      <div className="h-[400px] bg-[#e5ddd5] p-4 overflow-y-auto flex flex-col gap-3 custom-scrollbar">
+        <div className="bg-white p-3 rounded-xl rounded-tl-none shadow-sm max-w-[85%] self-start relative animate-in fade-in slide-in-from-left-2 duration-300">
+          <p className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">
+            {message}
+          </p>
+          <p className="text-[10px] text-slate-400 text-right mt-1">14:41</p>
         </div>
 
-        {type === 'menu' && options && options.length > 0 && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '8px', width: '100%', padding: '0 16px' }}>
+        {type === "menu" && options && options.length > 0 && (
+          <div className="flex flex-col gap-2 mt-2 w-full px-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
             {options.map((opt, i) => (
-              <div 
-                key={i} 
-                style={{ 
-                  backgroundColor: 'white', 
-                  color: '#00a884', 
-                  fontWeight: '600', 
-                  fontSize: '14px', 
-                  padding: '10px 16px', 
-                  borderRadius: '24px', 
-                  textAlign: 'center', 
-                  boxShadow: '0 1px 2px rgba(0,0,0,0.1)', 
-                  border: '1px solid #f3f4f6'
-                }}
+              <div
+                key={i}
+                className="bg-white text-[#00a884] font-bold text-sm py-2.5 px-4 rounded-full text-center shadow-sm border border-slate-50 hover:bg-slate-50 transition-colors cursor-default"
               >
                 {opt.label}
               </div>
@@ -54,16 +54,16 @@ export const WhatsAppPreview: React.FC<WhatsAppPreviewProps> = ({ message, type,
       </div>
 
       {/* WhatsApp Input area */}
-      <div style={{ backgroundColor: '#f0f0f0', padding: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-        <div style={{ flex: 1, backgroundColor: 'white', height: '40px', borderRadius: '20px', padding: '0 16px', display: 'flex', alignItems: 'center' }}>
-          <p style={{ color: '#9ca3af', fontSize: '14px', margin: 0 }}>Mensaje...</p>
+      <div className="bg-[#f0f0f0] p-3 flex items-center gap-3">
+        <div className="flex-1 bg-white h-10 rounded-full px-4 flex items-center">
+          <p className="text-slate-400 text-sm">Mensaje...</p>
         </div>
-        <div style={{ width: '40px', height: '40px', backgroundColor: '#00a884', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white' }}>
+        <div className="w-10 h-10 bg-[#00a884] rounded-full flex items-center justify-center text-white shadow-md active:scale-90 transition-transform">
           <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20">
             <path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.429A1 1 0 009 15.571V11a1 1 0 112 0v4.571a1 1 0 00.725.962l5 1.428a1 1 0 001.17-1.408l-7-14z" />
           </svg>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

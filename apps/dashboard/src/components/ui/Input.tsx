@@ -8,7 +8,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: string;
 }
 
-export const Input = ({ label, type, className, ...props }: InputProps) => {
+export const Input = ({ label, type, className, error, ...props }: InputProps) => {
   const [showPassword, setShowPassword] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const isPassword = type === "password";
@@ -26,7 +26,7 @@ export const Input = ({ label, type, className, ...props }: InputProps) => {
           {...props}
           type={inputType}
           className={cn(
-            "w-full px-4 py-2.5 bg-background border border-border rounded-full text-sm text-foreground outline-none focus:border-foreground transition-colors placeholder:text-muted-foreground",
+            "w-full px-5 py-2.5 bg-canvas border border-hairline rounded-full text-base text-ink outline-none focus:border-ink transition-all placeholder:text-mute",
             isPassword ? "pr-12" : "",
             className,
           )}
