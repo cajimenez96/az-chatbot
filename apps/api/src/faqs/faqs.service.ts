@@ -1,91 +1,35 @@
 import { Injectable, NotFoundException, OnModuleInit } from "@nestjs/common";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { FAQ } from "./faq.entity";
-import type { CreateFAQDTO } from "@az-chatbot/types";
+import { CreateFAQDTO } from "@az-chatbot/types";
 import { MetricsService } from "../metrics/metrics.service";
+import { BlocksService } from "../blocks/blocks.service";
 import * as fs from "fs";
 import * as path from "path";
 
 @Injectable()
 export class FAQsService implements OnModuleInit {
-  private readonly jsonPath = path.join(process.cwd(), "data", "faqs.json");
   private readonly categoriesPath = path.join(
     process.cwd(),
     "data",
     "faq-categories.json"
   );
-  private useJson = true;
 
   constructor(
-    @InjectRepository(FAQ)
-    private readonly repo: Repository<FAQ>,
+    private readonly blocksService: BlocksService,
     private readonly metricsService: MetricsService
   ) {}
 
   onModuleInit() {
-    this.useJson = process.env.PERSISTENCE === 'json' || true
-    console.log(`[FAQsService] Using JSON persistence at: ${this.jsonPath}`)
-    
-    if (!fs.existsSync(path.dirname(this.jsonPath))) {
-      fs.mkdirSync(path.dirname(this.jsonPath), { recursive: true })
+    // Categories folder init
+    const dir = path.dirname(this.categoriesPath);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
     }
-    if (!fs.existsSync(this.jsonPath)) {
-      fs.writeFileSync(this.jsonPath, JSON.stringify([]))
-    }
-    // ... resto del onModuleInit
-
-    // Asegurar que existe el menú principal de FAQs
-    if (this.useJson) {
-      const faqs = this.readJSON()
-      const hasMainMenu = faqs.find((f: any) => f.id === 'main_faq_menu')
-      if (!hasMainMenu) {
-        const mainMenu = {
-          id: 'main_faq_menu',
-          type: 'menu',
-          question: 'Menú Principal de FAQs',
-          message: 'Entendido. ¿Sobre qué tema te gustaría consultar? 🔍',
-          category: 'general',
-          keywords: ['menu', 'ayuda', 'preguntas'],
-          options: [
-            { id: 'opt_gen', label: 'General', nextBlockId: 'faq_cat_direct_general' },
-            { id: 'opt_search', label: '🔍 Buscar por texto', nextBlockId: 'faq_search_input' }
-          ],
-          active: true,
-          hits: 0,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-        faqs.push(mainMenu as any)
-        this.writeJSON(faqs)
-      }
+    if (!fs.existsSync(this.categoriesPath)) {
+      fs.writeFileSync(this.categoriesPath, JSON.stringify([{ id: "general", label: "General" }], null, 2));
     }
   }
 
-  private readJSON(): FAQ[] {
-    try {
-      const data = fs.readFileSync(this.jsonPath, 'utf8')
-      const faqs = JSON.parse(data)
-      return faqs.map((f: any) => ({
-        ...f,
-        id: f.id,
-        type: f.type || 'message',
-        question: f.question || '',
-        message: f.message || f.answer || '',
-        category: f.category || 'general',
-        active: f.active ?? true,
-      })) as FAQ[]
-    } catch (e) {
-      console.error(`[FAQsService] Error reading JSON:`, e)
-      return []
-    }
-  }
-
-  private writeJSON(faqs: FAQ[]) {
-    fs.writeFileSync(this.jsonPath, JSON.stringify(faqs, null, 2));
-  }
-
-  // --- Categorías ---
+  // --- Categorías (Stored in JSON) ---
   async findAllCategories() {
     try {
       if (fs.existsSync(this.categoriesPath)) {
@@ -114,136 +58,101 @@ export class FAQsService implements OnModuleInit {
     fs.writeFileSync(this.categoriesPath, JSON.stringify(filtered, null, 2));
   }
 
-  // --- FAQs ---
-  async findAll(category?: string): Promise<FAQ[]> {
-    if (this.useJson) {
-      let faqs = this.readJSON().filter((f: FAQ) => f.active)
-      if (category) faqs = faqs.filter((f: FAQ) => f.category === category)
-      return faqs.sort((a, b) => (b.hits || 0) - (a.hits || 0))
-    }
-    const qb = this.repo.createQueryBuilder('faq').where('faq.active = true')
-    if (category) qb.andWhere('faq.category = :category', { category })
-    return qb.orderBy('faq.hits', 'DESC').getMany()
+  async removeCategory(id: string) {
+    return this.deleteCategory(id);
   }
 
-  async findAllAdmin(): Promise<FAQ[]> {
-    if (this.useJson) {
-      return this.readJSON().sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-      )
-    }
-    return this.repo.find({ order: { createdAt: 'DESC' } })
+  // --- FAQs (Delegating to BlocksService) ---
+  async findAll(category?: string): Promise<any[]> {
+    const blocks = await this.blocksService.findAllFaqs(category);
+    // Map blocks to the expected shape of FAQs
+    return blocks.map(b => ({
+      ...b,
+      question: b.question || '',
+    }));
   }
 
-  async findOne(id: string): Promise<FAQ> {
-    if (this.useJson) {
-      const faq = this.readJSON().find((f: FAQ) => f.id === id)
-      if (!faq) throw new NotFoundException(`FAQ ${id} not found`)
-      return faq
-    }
-    const faq = await this.repo.findOne({ where: { id } })
-    if (!faq) throw new NotFoundException(`FAQ ${id} not found`)
-    return faq
+  async findAllAdmin(): Promise<any[]> {
+    const blocks = await this.blocksService.findAll();
+    return blocks
+      .filter(b => b.isFaq)
+      .map(b => ({
+        ...b,
+        question: b.question || '',
+      }));
   }
 
-  async create(dto: CreateFAQDTO): Promise<FAQ> {
-    console.log(`[FAQsService] Creating FAQ:`, dto)
-    if (this.useJson) {
-      const now = new Date()
-      const faq = {
-        id: dto.id || Math.random().toString(36).substring(2, 11),
-        type: dto.type || 'message',
-        question: dto.question,
-        message: dto.message || (dto as any).answer || '',
-        category: dto.category || 'general',
-        keywords: dto.keywords || [],
-        options: dto.options || [],
-        saveAs: dto.saveAs,
-        nextBlockId: dto.nextBlockId,
-        active: true,
-        hits: 0,
-        createdAt: now,
-        updatedAt: now,
-      } as FAQ
-
-      const faqs = this.readJSON()
-      faqs.push(faq)
-      this.writeJSON(faqs)
-      console.log(`[FAQsService] FAQ saved to JSON: ${faq.id}`)
-      return faq
-    }
-
-    const entity = this.repo.create(dto as any)
-    const saved = await this.repo.save(entity)
-    return saved as unknown as FAQ
+  async findOne(id: string): Promise<any> {
+    const block = await this.blocksService.findOne(id);
+    return {
+      ...block,
+      question: block.question || '',
+    };
   }
 
-  async update(id: string, dto: any): Promise<FAQ> {
-    console.log(`[FAQsService] Updating FAQ ${id}:`, dto)
-    if (this.useJson) {
-      const faqs = this.readJSON()
-      const index = faqs.findIndex((f: FAQ) => f.id === id)
-      if (index === -1) throw new NotFoundException(`FAQ ${id} not found`)
+  async create(dto: CreateFAQDTO): Promise<any> {
+    console.log(`[FAQsService] Delegating FAQ creation to BlocksService:`, dto);
+    
+    // Ensure answer is mapped to message if received from legacy front
+    const message = dto.message || (dto as any).answer || '';
+    
+    const block = await this.blocksService.create({
+      id: dto.id,
+      type: dto.type || 'message',
+      message,
+      question: dto.question,
+      category: dto.category || 'general',
+      keywords: dto.keywords || [],
+      options: dto.options || [],
+      saveAs: dto.saveAs,
+      nextBlockId: dto.nextBlockId,
+      isFaq: true,
+      active: true,
+    });
 
-      // Mapear answer a message si viene del dashboard viejo
-      if (dto.answer && !dto.message) {
-        dto.message = dto.answer
-      }
+    return {
+      ...block,
+      question: block.question || '',
+    };
+  }
 
-      const updated = {
-        ...faqs[index],
-        ...dto,
-        updatedAt: new Date(),
-      }
-      faqs[index] = updated as FAQ
-      this.writeJSON(faqs)
-      console.log(`[FAQsService] FAQ updated in JSON: ${id}`)
-      return updated as FAQ
+  async update(id: string, dto: any): Promise<any> {
+    console.log(`[FAQsService] Delegating FAQ update to BlocksService:`, id, dto);
+
+    // Map legacy answer to message
+    if (dto.answer && !dto.message) {
+      dto.message = dto.answer;
     }
 
-    const faq = await this.repo.findOne({ where: { id } })
-    if (!faq) throw new NotFoundException(`FAQ ${id} not found`)
-    Object.assign(faq, dto)
-    const saved = await this.repo.save(faq)
-    return saved as unknown as FAQ
+    const block = await this.blocksService.update(id, {
+      ...dto,
+      isFaq: true,
+    });
+
+    return {
+      ...block,
+      question: block.question || '',
+    };
   }
 
   async remove(id: string): Promise<void> {
     if (id === 'main_faq_menu') {
-      throw new Error('No se puede eliminar el menú principal de FAQs')
+      throw new Error('No se puede eliminar el menú principal de FAQs');
     }
-    if (this.useJson) {
-      const faqs = this.readJSON().filter((f: FAQ) => f.id !== id)
-      this.writeJSON(faqs)
-      return
-    }
-    await this.repo.delete(id)
+    await this.blocksService.remove(id);
   }
 
   async incrementHits(id: string): Promise<void> {
-    if (this.useJson) {
-      const faqs = this.readJSON()
-      const index = faqs.findIndex((f: FAQ) => f.id === id)
-      if (index !== -1) {
-        faqs[index].hits = (faqs[index].hits || 0) + 1
-        this.writeJSON(faqs)
-      }
-    } else {
-      await this.repo.increment({ id }, 'hits', 1)
-    }
-    await this.metricsService.registerEvent({ event: 'faq_served' })
+    await this.blocksService.incrementHits(id);
+    await this.metricsService.registerEvent({ event: 'faq_served' });
   }
 
-  async findByKeyword(keyword: string): Promise<FAQ | null> {
-    const faqs = await this.findAll()
-    const lower = keyword.toLowerCase()
-    return (
-      faqs.find(
-        (f: FAQ) =>
-          f.keywords?.some((k: string) => lower.includes(k.toLowerCase())) ||
-          f.question.toLowerCase().includes(lower),
-      ) ?? null
-    )
+  async findByKeyword(keyword: string): Promise<any | null> {
+    const block = await this.blocksService.findFaqByKeyword(keyword);
+    if (!block) return null;
+    return {
+      ...block,
+      question: block.question || '',
+    };
   }
 }

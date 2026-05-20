@@ -8,3 +8,6 @@ bun.lockb
 *.log
 .DS_Store
 apps/bot/tokens/
+
+# AI
+.atl

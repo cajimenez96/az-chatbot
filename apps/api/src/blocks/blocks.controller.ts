@@ -12,6 +12,11 @@ export class BlocksController {
     return this.blocksService.findAll()
   }
 
+  @Get('graph/validate')
+  validateGraph() {
+    return this.blocksService.validateFlowGraph()
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.blocksService.findOne(id)

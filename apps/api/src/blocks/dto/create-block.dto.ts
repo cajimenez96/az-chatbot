@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEnum, IsArray } from 'class-validator'
+import { IsString, IsOptional, IsEnum, IsArray, IsBoolean, IsNumber } from 'class-validator'
 import type { BlockType, BlockOption } from '@az-chatbot/types'
 
 export class CreateBlockDto {
@@ -23,6 +23,31 @@ export class CreateBlockDto {
   @IsString()
   @IsOptional()
   nextBlockId?: string
+
+  @IsBoolean()
+  @IsOptional()
+  isFaq?: boolean
+
+  @IsString()
+  @IsOptional()
+  question?: string
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  keywords?: string[]
+
+  @IsString()
+  @IsOptional()
+  category?: string
+
+  @IsBoolean()
+  @IsOptional()
+  active?: boolean
+
+  @IsNumber()
+  @IsOptional()
+  hits?: number
 
   @IsOptional()
   createdAt?: any

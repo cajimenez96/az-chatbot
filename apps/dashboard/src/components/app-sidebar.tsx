@@ -11,7 +11,6 @@ import {
 } from "@/components/ui/sidebar";
 import {
   Users,
-  MessageSquare,
   BarChart3,
   LogOut,
   Smartphone,
@@ -24,7 +23,6 @@ import { useAuthStore } from "@/store/useAuthStore";
 const menuItems = [
   { name: "Leads", icon: Users, path: "/dashboard/leads" },
   { name: "Constructor", icon: Layout, path: "/dashboard/builder" },
-  { name: "FAQs", icon: MessageSquare, path: "/dashboard/faqs" },
   { name: "Métricas", icon: BarChart3, path: "/dashboard/metrics" },
   { name: "WhatsApp", icon: Smartphone, path: "/dashboard/whatsapp" },
 ];

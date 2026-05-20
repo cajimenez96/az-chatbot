@@ -71,33 +71,19 @@ export interface FAQOption {
   nextFaqId?: string
 }
 
-export interface IFAQ {
-  id: string
-  type: BlockType       // 'message' | 'question' | 'menu'
+export interface IFAQ extends IBlock {
   question: string      // El título/activador
-  message: string       // La respuesta/mensaje (reemplaza 'answer')
   category: string      // ID de la categoría
-  keywords: string[]
-  options?: BlockOption[]
-  saveAs?: string
-  nextBlockId?: string
   active: boolean
   hits: number
-  createdAt: Date
-  updatedAt: Date
 }
 
-export interface CreateFAQDTO {
-  id?: string
-  type: BlockType
+export interface CreateFAQDTO extends CreateBlockDTO {
   question: string
-  message: string
   category: string
-  keywords?: string[]
-  options?: BlockOption[]
-  saveAs?: string
-  nextBlockId?: string
 }
+
+export interface UpdateFAQDTO extends Partial<CreateFAQDTO> {}
 
 // ─── Metrics ──────────────────────────────────────────────────────────────────
 
@@ -151,6 +137,15 @@ export interface IBlock {
   options?: BlockOption[]
   saveAs?: string // For 'question' type, key to save in state
   nextBlockId?: string // For 'message' and 'question' type
+  
+  // Unified fields (for FAQ and advanced flows)
+  question?: string
+  category?: string
+  keywords?: string[]
+  active?: boolean
+  hits?: number
+  isFaq?: boolean
+
   createdAt: Date
   updatedAt: Date
 }
@@ -162,6 +157,14 @@ export interface CreateBlockDTO {
   options?: BlockOption[]
   saveAs?: string
   nextBlockId?: string
+  
+  // Unified fields
+  question?: string
+  category?: string
+  keywords?: string[]
+  active?: boolean
+  hits?: number
+  isFaq?: boolean
 }
 
 export interface UpdateBlockDTO extends Partial<CreateBlockDTO> {}
